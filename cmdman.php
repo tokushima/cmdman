@@ -518,7 +518,7 @@ namespace{
 	\cmdman\Command::init();
 	
 	if(\cmdman\Args::cmd() == null){
-		\cmdman\Std::println('cmdman 0.4.6 (PHP '.phpversion().')');
+		\cmdman\Std::println('cmdman 0.1.0 (PHP '.phpversion().')');
 		$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
 		\cmdman\Std::println_info(sprintf('Type \'%s %s subcommand --help\' for usage.'.PHP_EOL,basename($php),basename(__FILE__)));
 		\cmdman\Std::println_primary('Subcommands:');
