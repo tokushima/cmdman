@@ -1,6 +1,6 @@
 cmdman
 =========
-Command Line Launcher (PHP 5 >= 5.3.0)
+Class tool launcher (PHP 5 >= 5.3.0)
 
 
 #Download
