@@ -1,6 +1,6 @@
 cmdman
 =========
-Command Line Framework (PHP 5 >= 5.3.0)
+Command Line Launcher (PHP 5 >= 5.3.0)
 
 
 #Download
