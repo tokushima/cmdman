@@ -285,10 +285,7 @@ namespace cmdman{
 				\cmdman\Std::println_danger(PHP_EOL.'Exception: ');
 				\cmdman\Std::println(implode(' ',explode(PHP_EOL,PHP_EOL.$e->getMessage())));
 				\cmdman\Std::println();
-
-				if(!is_callable($error_funcs) && defined('cmdman_ERROR_CALLBACK')){
-					$error_funcs = constant('cmdman_ERROR_CALLBACK');
-				}				
+				
 				if(is_string($error_funcs)){
 					if(strpos($error_funcs,'::') !== false){
 						$error_funcs = explode('::',$error_funcs);
