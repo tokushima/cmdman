@@ -56,14 +56,6 @@ namespace cmdman{
 			return self::$value;
 		}
 		static public function cmd(){
-			if(defined('cmdman_CMD_REPLACE_JSON')){
-				$json = constant('cmdman_CMD_REPLACE_JSON');
-				foreach(json_decode($json,true) as $alias => $real){
-					if(strpos(self::$cmd,$alias) === 0){
-						self::$cmd = str_replace($alias,$real,self::$cmd);
-					}
-				}
-			}
 			return self::$cmd;
 		}
 	}
