@@ -57,6 +57,14 @@ namespace cmdman{
 			return self::$value;
 		}
 		static public function cmd(){
+			if(defined('CMDMAN_CMD_REPLACE_JSON')){
+				$json = constant('CMDMAN_CMD_REPLACE_JSON');
+				foreach(json_decode($json,true) as $alias => $real){
+					if(strpos(self::$cmd,$alias) === 0){
+						self::$cmd = str_replace($alias,$real,self::$cmd);
+					}
+				}
+			}
 			return self::$cmd;
 		}
 	}
@@ -276,7 +284,7 @@ namespace cmdman{
 					include($f);
 				}
 				\cmdman\Std::println_danger(PHP_EOL.'Exception: ');
-				\cmdman\Std::println(implode(' ',explode(PHP_EOL,PHP_EOL.$e->getMessage())));
+				\cmdman\Std::println(implode(' ',explode(PHP_EOL,PHP_EOL.$exception->getMessage())));
 				\cmdman\Std::println();
 				
 				if(!is_callable($error_funcs) && defined('CMDMAN_ERROR_CALLBACK')){
@@ -291,7 +299,7 @@ namespace cmdman{
 					}
 				}
 				if(is_callable($error_funcs)){
-					call_user_func_array($error_funcs,array($e));
+					call_user_func_array($error_funcs,array($exception));
 				}
 			}
 		}
