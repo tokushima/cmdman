@@ -69,6 +69,7 @@ namespace cmdman{
 	}
 	/**
 	 * router with built-in web server
+	 * TODO 独立させる？
 	 */
 	class Router{
 		static private function log($state,$file,$uri){
@@ -379,6 +380,7 @@ namespace cmdman{
 		}
 		static public function get_list(){
 			$list = array();
+			$hastrace = (count(debug_backtrace(false)) > 1);
 			
 			foreach(self::get_include_path() as $p){
 				if(($r = realpath($p)) !== false){
@@ -390,7 +392,8 @@ namespace cmdman{
 								$f->isDir() &&
 								ctype_upper(substr($f->getFilename(),0,1)) &&
 								strpos($f->getPathname(),'/.') === false &&
-								strpos($f->getFilename(),'_') !== 0
+								strpos($f->getFilename(),'_') !== 0 &&
+								(!$hastrace || strpos($f->getPathname(),__DIR__) === false)
 						){
 							if(is_file($cf=$f->getPathname().'/cmd.php') && !isset($list[$cf])){
 								$class = str_replace('/','.',substr(dirname($cf),strlen($r)+1));
