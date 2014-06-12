@@ -9,5 +9,5 @@
 	"require": {
 		"php": ">=5.3.0"
 	},
-	"bin": ["bin/cmdman"]
+	"bin": ["bin/cmdman","bin/cmdman.router"]
 }
