@@ -5,5 +5,16 @@ else
 	SRVHOST=localhost:8080
 fi
 
-/usr/bin/env php -S  $SRVHOST `dirname $0`/../cmdman.router.php
+SS=$0
+
+if [ -n $(readlink $SS) ]; then
+	SS=$(dirname $0)/$(readlink $SS)
+fi
+
+SDIR=$(dirname $(dirname $SS))
+ 
+echo $SDIR/cmdman.router.php
+
+echo $COMPOSER_BIN_DIR
+#/usr/bin/env php -S  $SRVHOST $(dirname $(dirname $0/$SCRIPT))/cmdman.router.php
 
