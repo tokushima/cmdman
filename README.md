@@ -4,13 +4,9 @@ Class tool launcher (PHP 5 >= 5.3.0)
 
 
 #Download
-	> curl -LO https://raw.github.com/tokushima/cmdman/master/cmdman.php
+	> curl -LO http://git.io/cmdman.phar
 
 #Run command
-	> php cmdman.php abc.def.Ghi [arg] --paramname value --paramname value 
+	> php cmdman.phar abc.def.Ghi [arg] --paramname value --paramname value 
 	
 
-#Router for PHP built in webserver
-	> cd workspace
-	> php -S localhost:8080 cmdman.php
-	
