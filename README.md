@@ -49,16 +49,21 @@ Class tool launcher (PHP 5 >= 5.3.0)
 
 #Special script file
 
-	__setup__.php
-	__teardown__.php
-	__exception__.php
-
+	*/cmd/__setup__.php
+		コマンド実行前の処理
+	*/cmd/__teardown__.php
+		コマンド実行後の処理
+	*/cmd/__exception__.php
+		コマンド実行での例外発生時の処理
 
 #Define
 
-	CMDMAN_ERROR_CALLBACK = func
+	CMDMAN_ERROR_CALLBACK = funcname
+		例外発生時に呼び出される関数
+		exp. define('CMDMAN_ERROR_CALLBACK','\\ebi\\Log::error');
 	CMDMAN_CMD_REPLACE_JSON = json text
-
+		コマンド検索時に別名で呼び出す為の置文字列の定義   {"search":"replace"}
+		exp. define('CMDMAN_CMD_REPLACE_JSON','{"org.rhaco.":"ebi."}');
 
 #Methods
 
