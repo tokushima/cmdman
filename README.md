@@ -1,25 +1,37 @@
 cmdman
 =========
-Class tool launcher (PHP 5 >= 5.3.0)
+Command Line tool launcher (PHP 5 >= 5.3.0)
 
 
 #Download
-	$ curl -LO http://git.io/cmdman.phar
 
-#Create cmd file
-	\abc\def\Ghi.php
-	 -> [lib dir]/abc/def/Ghi.php
-	 
-	 
-	 => [lib dir]/abc/def/Ghi/cmd.php
-	 or
-	 => [lib dir]/abc/def/Ghi/cmd/xyz.php
-	 => [lib dir]/abc/def/Ghi/cmd/ebi.php	 
+```sh
+$ curl -LO http://git.io/cmdman.phar
+```
 
 #Run command
-	$ php cmdman.phar abc.def.Ghi [arg] --paramname value --paramname value 
-	
 
+example) execute `abc.def.Ghi` command.
+
+```sh
+$ php cmdman.phar abc.def.Ghi [arg] --paramname value --paramname value 
+```
+
+#Create cmd file
+
+define `abc.dfe.Ghi` command(run `php cmdman.phar abc.def.Ghi`). find php file rule is.
+
+```
+project_root/abc/def/Ghi.php # namespace + Class Name
+
+or
+
+project_root/abc/def/Ghi/cmd.php # namespace + Class Name + `cmd.php`
+
+or
+
+project_root/abc/def/Ghi/cmd/foo.php # namespace + Class Name + find php file within `cmd` directory
+```
 
 #Args type
 
