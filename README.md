@@ -4,7 +4,7 @@ Class tool launcher (PHP 5 >= 5.3.0)
 
 
 #Download
-	> curl -LO http://git.io/cmdman.phar
+	$ curl -LO http://git.io/cmdman.phar
 
 #Create cmd file
 	\abc\def\Ghi.php
@@ -17,7 +17,7 @@ Class tool launcher (PHP 5 >= 5.3.0)
 	 => [lib dir]/abc/def/Ghi/cmd/ebi.php	 
 
 #Run command
-	> php cmdman.phar abc.def.Ghi [arg] --paramname value --paramname value 
+	$ php cmdman.phar abc.def.Ghi [arg] --paramname value --paramname value 
 	
 
 
