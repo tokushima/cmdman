@@ -380,21 +380,45 @@ namespace cmdman{
 				print($msg.PHP_EOL);
 			}
 		}
+		/**
+		 * White
+		 * @param string $msg
+		 */
 		static public function println_default($msg){
 			self::println($msg,'37');
 		}
+		/**
+		 * Blue
+		 * @param string $msg
+		 */
 		static public function println_primary($msg){
 			self::println($msg,'34');
 		}
+		/**
+		 * Green
+		 * @param string $msg
+		 */
 		static public function println_success($msg){
 			self::println($msg,'32');
 		}
+		/**
+		 * Cyan
+		 * @param string $msg
+		 */
 		static public function println_info($msg){
 			self::println($msg,'36');
 		}
+		/**
+		 * Yellow
+		 * @param string $msg
+		 */
 		static public function println_warning($msg){
 			self::println($msg,'33');
 		}
+		/**
+		 * Red
+		 * @param string $msg
+		 */
 		static public function println_danger($msg){
 			self::println($msg,'31');
 		}
