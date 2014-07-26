@@ -7,6 +7,10 @@ Command Line tool launcher (PHP 5 >= 5.3.0)
 
 ```sh
 $ curl -LO http://git.io/cmdman.phar
+
+or
+
+$ php -r 'readfile("http://git.io/cmdman.phar");' > cmdman.phar
 ```
 
 #Run command
