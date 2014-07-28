@@ -10,11 +10,11 @@ namespace cmdman{
 	 * parse $_SERVER['argv']
 	 */
 	class Args{
-		static private $opt = array();
-		static private $value = array();
-		static private $cmd;
+		private static $opt = array();
+		private static $value = array();
+		private static $cmd;
 		
-		static public function init(){
+		public static function init(){
 			$opt = $value = array();
 			$argv = array_slice((isset($_SERVER['argv']) ? $_SERVER['argv'] : array()),1);
 			
@@ -43,19 +43,19 @@ namespace cmdman{
 			self::$opt = $opt;
 			self::$value = $value;
 		}
-		static public function opt($name,$default=false){
+		public static function opt($name,$default=false){
 			return array_key_exists($name,self::$opt) ? self::$opt[$name][0] : $default;
 		}
-		static public function value($default=null){
+		public static function value($default=null){
 			return isset(self::$value[0]) ? self::$value[0] : $default;
 		}
-		static public function opts($name){
+		public static function opts($name){
 			return array_key_exists($name,self::$opt) ? self::$opt[$name] : array();
 		}
-		static public function values(){
+		public static function values(){
 			return self::$value;
 		}
-		static public function cmd(){
+		public static function cmd(){
 			if(defined('CMDMAN_CMD_REPLACE_JSON')){
 				$json = constant('CMDMAN_CMD_REPLACE_JSON');
 				foreach(json_decode($json,true) as $alias => $real){
@@ -71,7 +71,7 @@ namespace cmdman{
 	 * command
 	 */
 	class Command{
-		static public function init(){
+		public static function init(){
 			if(is_file($f=getcwd().'/bootstrap.php') || is_file($f=getcwd().'/vendor/autoload.php')){
 				try{
 					ob_start();
@@ -81,7 +81,7 @@ namespace cmdman{
 				}
 			}
 		}
-		static private function get_include_path(){
+		private static function get_include_path(){
 			$include_path = array();
 
 			foreach(explode(PATH_SEPARATOR,get_include_path()) as $p){
@@ -116,7 +116,7 @@ namespace cmdman{
 			krsort($include_path);
 			return array_keys($include_path);
 		}
-		static private function get_file($command){
+		private static function get_file($command){
 			if(strpos($command,'::') !== false){
 				list($command,$func) = explode('::',$command,2);
 					
@@ -134,7 +134,7 @@ namespace cmdman{
 			}
 			throw new \InvalidArgumentException($command.' not found.');
 		}
-		static public function exec($command,$error_funcs=null){
+		public static function exec($command,$error_funcs=null){
 			$file = null;
 			try{
 				$file = self::get_file($command);
@@ -208,17 +208,17 @@ namespace cmdman{
 				}
 			}
 		}
-		static private function get_docuemnt($file){
+		private static function get_docuemnt($file){
 			return (preg_match('/\/\*\*.+?\*\//s',file_get_contents($file),$m)) ?
 				trim(preg_replace("/^[\s]*\*[\s]{0,1}/m","",str_replace(array('/'.'**','*'.'/'),'',$m[0]))) :
 				'';
 		}
-		static private function get_summary($file){
+		private static function get_summary($file){
 			$doc = trim(preg_replace('/@.+/','',self::get_docuemnt($file)));
 			list($summary) = explode(PHP_EOL,$doc);
 			return $summary;
 		}
-		static private function get_params($command){
+		private static function get_params($command){
 			$doc = self::get_docuemnt(self::get_file($command));
 			
 			$help_params = array();
@@ -262,7 +262,7 @@ namespace cmdman{
 			}
 			return $help_params;
 		}
-		static public function doc($command){		
+		public static function doc($command){		
 			$pad = 4;
 			$help_params = self::get_params($command);
 			foreach(array_keys($help_params) as $k){
@@ -283,42 +283,48 @@ namespace cmdman{
 			\cmdman\Std::println("\n  Description:");
 			\cmdman\Std::println('    '.str_replace("\n","\n    ",$doc)."\n");
 		}
-		static public function get_list(){
+		public static function find_cmd(&$list,$r,$hastrace=true){
+			if(!($r instanceof \RecursiveDirectoryIterator)){
+				$r = new \RecursiveDirectoryIterator($r,\FilesystemIterator::CURRENT_AS_FILEINFO|\FilesystemIterator::SKIP_DOTS|\FilesystemIterator::UNIX_PATHS);
+			}
+			$it = new \RecursiveIteratorIterator($r
+				,\RecursiveIteratorIterator::SELF_FIRST
+			);
+			foreach($it as $f){
+				if(
+					$f->isDir() &&
+					ctype_upper(substr($f->getFilename(),0,1)) &&
+					strpos($f->getPathname(),'/.') === false &&
+					strpos($f->getFilename(),'_') !== 0 &&
+					(!$hastrace || strpos($f->getPathname(),__DIR__) === false)
+				){
+					if(is_file($cf=$f->getPathname().'/cmd.php') && !isset($list[$cf])){
+						$class = str_replace('/','.',substr(dirname($cf),strlen($r)+1));
+						$list[$cf] = array($class,self::get_summary($cf));
+					}
+					if(is_dir($cd=$f->getPathname().'/cmd/')){
+						foreach(new \DirectoryIterator($cd) as $fi){
+							if(
+							$fi->isFile() &&
+							strpos($fi->getFilename(),'_') !== 0 &&
+							substr($fi->getFilename(),-4) == '.php' &&
+							!isset($list[$fi->getPathname()] )
+							){
+								$class = str_replace('/','.',substr($f->getPathname(),strlen($r)+1));
+								$list[$fi->getPathname()] = array($class.'::'.substr($fi->getFilename(),0,-4),self::get_summary($fi->getPathname()));
+							}
+						}
+					}
+				}
+			}				
+		}
+		public static function get_list(){
 			$list = array();
 			$hastrace = (count(debug_backtrace(false)) > 1);
 			
 			foreach(self::get_include_path() as $p){
 				if(($r = realpath($p)) !== false){
-					foreach(new \RecursiveIteratorIterator(
-							new \RecursiveDirectoryIterator($r,\FilesystemIterator::SKIP_DOTS|\FilesystemIterator::UNIX_PATHS)
-							,\RecursiveIteratorIterator::SELF_FIRST
-					) as $f){
-						if(
-								$f->isDir() &&
-								ctype_upper(substr($f->getFilename(),0,1)) &&
-								strpos($f->getPathname(),'/.') === false &&
-								strpos($f->getFilename(),'_') !== 0 &&
-								(!$hastrace || strpos($f->getPathname(),__DIR__) === false)
-						){
-							if(is_file($cf=$f->getPathname().'/cmd.php') && !isset($list[$cf])){
-								$class = str_replace('/','.',substr(dirname($cf),strlen($r)+1));
-								$list[$cf] = array($class,self::get_summary($cf));
-							}
-							if(is_dir($cd=$f->getPathname().'/cmd/')){
-								foreach(new \DirectoryIterator($cd) as $fi){
-									if(
-										$fi->isFile() &&
-										strpos($fi->getFilename(),'_') !== 0 &&
-										substr($fi->getFilename(),-4) == '.php' &&
-										!isset($list[$fi->getPathname()] )
-									){
-										$class = str_replace('/','.',substr($f->getPathname(),strlen($r)+1));
-										$list[$fi->getPathname()] = array($class.'::'.substr($fi->getFilename(),0,-4),self::get_summary($fi->getPathname()));
-									}
-								}
-							}
-						}
-					}
+					self::find_cmd($list,$r,$hastrace);
 				}
 			}
 			return $list;
@@ -337,7 +343,7 @@ namespace cmdman{
 		 * @param boolean $silently 入力を非表示にする(Windowsでは非表示になりません)
 		 * @return string
 		 */
-		static public function read($msg,$default=null,$choice=array(),$multiline=false,$silently=false){
+		public static function read($msg,$default=null,$choice=array(),$multiline=false,$silently=false){
 			while(true){
 				$result = $b = null;
 				print($msg.(empty($choice) ? '' : ' ('.implode(' / ',$choice).')').(empty($default) ? '' : ' ['.$default.']').': ');
@@ -363,7 +369,7 @@ namespace cmdman{
 		 * @param boolean $multiline 複数行の入力をまつ、終了は行頭.(ドット)
 		 * @return string
 		 */
-		static public function silently($msg,$default=null,$choice=array(),$multiline=false){
+		public static function silently($msg,$default=null,$choice=array(),$multiline=false){
 			return self::read($msg,$default,$choice,$multiline,true);
 		}
 		/**
@@ -371,7 +377,7 @@ namespace cmdman{
 		 * @param string $msg
 		 * @param string $color ANSI Colors
 		 */
-		static public function println($msg='',$color='0'){
+		public static function println($msg='',$color='0'){
 			if(substr(PHP_OS,0,3) != 'WIN'){
 				print("\033[".$color."m");
 				print($msg.PHP_EOL);
@@ -384,42 +390,42 @@ namespace cmdman{
 		 * White
 		 * @param string $msg
 		 */
-		static public function println_default($msg){
+		public static function println_default($msg){
 			self::println($msg,'37');
 		}
 		/**
 		 * Blue
 		 * @param string $msg
 		 */
-		static public function println_primary($msg){
+		public static function println_primary($msg){
 			self::println($msg,'34');
 		}
 		/**
 		 * Green
 		 * @param string $msg
 		 */
-		static public function println_success($msg){
+		public static function println_success($msg){
 			self::println($msg,'32');
 		}
 		/**
 		 * Cyan
 		 * @param string $msg
 		 */
-		static public function println_info($msg){
+		public static function println_info($msg){
 			self::println($msg,'36');
 		}
 		/**
 		 * Yellow
 		 * @param string $msg
 		 */
-		static public function println_warning($msg){
+		public static function println_warning($msg){
 			self::println($msg,'33');
 		}
 		/**
 		 * Red
 		 * @param string $msg
 		 */
-		static public function println_danger($msg){
+		public static function println_danger($msg){
 			self::println($msg,'31');
 		}
 	}
@@ -463,7 +469,14 @@ namespace{
 		exit;
 	}
 	if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true){
-		\cmdman\Command::doc(\cmdman\Args::cmd());
+		$cmd = \cmdman\Args::cmd();
+		$list = array();
+
+		if(is_file($cmd)){
+			\cmdman\Command::find_cmd($list,new \Phar('phar://'.realpath($cmd)));
+		}else{
+			\cmdman\Command::doc(\cmdman\Args::cmd());
+		}
 		exit;
 	}
 	\cmdman\Command::exec(\cmdman\Args::cmd(),\cmdman\Args::opt('error-callback'));
