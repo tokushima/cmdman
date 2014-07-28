@@ -284,10 +284,11 @@ namespace cmdman{
 			\cmdman\Std::println('    '.str_replace("\n","\n    ",$doc)."\n");
 		}
 		public static function find_cmd(&$list,$r,$hastrace=true){
+			$it = $r;
 			if(!($r instanceof \RecursiveDirectoryIterator)){
-				$r = new \RecursiveDirectoryIterator($r,\FilesystemIterator::CURRENT_AS_FILEINFO|\FilesystemIterator::SKIP_DOTS|\FilesystemIterator::UNIX_PATHS);
+				$it = new \RecursiveDirectoryIterator($r,\FilesystemIterator::CURRENT_AS_FILEINFO|\FilesystemIterator::SKIP_DOTS|\FilesystemIterator::UNIX_PATHS);
 			}
-			$it = new \RecursiveIteratorIterator($r
+			$it = new \RecursiveIteratorIterator($it
 				,\RecursiveIteratorIterator::SELF_FIRST
 			);
 			foreach($it as $f){
@@ -451,13 +452,13 @@ namespace{
 	\cmdman\Args::init();
 	\cmdman\Command::init();
 	
-	if(\cmdman\Args::cmd() == null){
+	$usage = function(){
 		\cmdman\Std::println('cmdman 0.1.0 (PHP '.phpversion().')');
 		$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
 		\cmdman\Std::println_info(sprintf('Type \'%s %s subcommand --help\' for usage.'.PHP_EOL,basename($php),basename(__FILE__)));
-		\cmdman\Std::println_primary('Subcommands:');
-		
-		$list = \cmdman\Command::get_list();
+		\cmdman\Std::println_primary('Subcommands:');		
+	};
+	$show = function($list){
 		$len = 8;
 		foreach($list as $info){
 			if($len < strlen($info[0])) $len = strlen($info[0]);
@@ -465,15 +466,21 @@ namespace{
 		foreach($list as $info){
 			\cmdman\Std::println('  '.str_pad($info[0],$len).' : '.$info[1]);
 		}
-		\cmdman\Std::println();
+		\cmdman\Std::println();		
+	};
+	if(\cmdman\Args::cmd() == null){
+		$usage();
+		$list = \cmdman\Command::get_list();
+		$show($list);
 		exit;
 	}
 	if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true){
-		$cmd = \cmdman\Args::cmd();
-		$list = array();
-
-		if(is_file($cmd)){
-			\cmdman\Command::find_cmd($list,new \Phar('phar://'.realpath($cmd)));
+		if(is_file(\cmdman\Args::cmd())){
+			$list = array();
+			$usage();
+			\cmdman\Command::find_cmd($list,new \Phar(realpath($cmd)));
+			$show($list);
+			exit;						
 		}else{
 			\cmdman\Command::doc(\cmdman\Args::cmd());
 		}
