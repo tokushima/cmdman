@@ -117,17 +117,23 @@ namespace cmdman{
 			return array_keys($include_path);
 		}
 		private static function get_file($command){
+			$protocol = '';
+			if(strpos($command,'#') !== false){
+				list($file,$command) = explode('#',$command,2);
+				$file = realpath($file);
+				$protocol = 'phar://';
+			}
 			if(strpos($command,'::') !== false){
 				list($command,$func) = explode('::',$command,2);
-					
-				foreach(self::get_include_path() as $p){
-					if(is_file($f=($p.'/'.str_replace('.','/',$command).'/cmd/'.$func.'.php'))){
+
+				foreach((isset($file) ? array($file) : self::get_include_path()) as $p){
+					if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd/'.$func.'.php'))){
 						return $f;
 					}
 				}
 			}else{
-				foreach(self::get_include_path() as $p){
-					if(is_file($f=($p.'/'.str_replace('.','/',$command).'/cmd.php'))){
+				foreach((isset($file) ? array($file) : self::get_include_path()) as $p){
+					if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd.php'))){
 						return $f;
 					}
 				}
@@ -138,6 +144,10 @@ namespace cmdman{
 			$file = null;
 			try{
 				$file = self::get_file($command);
+				
+				if(strpos($file,'phar://') === 0){
+					include_once(preg_replace('/^phar:\/\/(.+\.phar)\/.+$/','\\1',$file));
+				}
 				if(is_file($f=dirname($file).'/__setup__.php')){
 					include($f);
 				}
@@ -179,7 +189,7 @@ namespace cmdman{
 					}
 					$$k = ($i[2]['is_a'] ? $value : (empty($value) ? null : $value[0]));
 				}
-				include(self::get_file($command));
+				include($file);
 				
 				if(is_file($f=dirname($file).'/__teardown__.php')){
 					include($f);
@@ -283,7 +293,7 @@ namespace cmdman{
 			\cmdman\Std::println("\n  Description:");
 			\cmdman\Std::println('    '.str_replace("\n","\n    ",$doc)."\n");
 		}
-		public static function find_cmd(&$list,$r,$hastrace=true){
+		public static function find_cmd(&$list,$r,$hastrace=true,$realpath=null){
 			if($r instanceof \RecursiveDirectoryIterator){
 				$it = $r;
 				$r = $r->getFilename();				
@@ -293,7 +303,6 @@ namespace cmdman{
 			$it = new \RecursiveIteratorIterator($it
 				,\RecursiveIteratorIterator::SELF_FIRST
 			);
-			// TODO
 			foreach($it as $f){
 				if(
 					$f->isDir() &&
@@ -309,13 +318,19 @@ namespace cmdman{
 					if(is_dir($cd=$f->getPathname().'/cmd/')){
 						foreach(new \DirectoryIterator($cd) as $fi){
 							if(
-							$fi->isFile() &&
-							strpos($fi->getFilename(),'_') !== 0 &&
-							substr($fi->getFilename(),-4) == '.php' &&
-							!isset($list[$fi->getPathname()] )
+								$fi->isFile() &&
+								strpos($fi->getFilename(),'_') !== 0 &&
+								substr($fi->getFilename(),-4) == '.php' &&
+								!isset($list[$fi->getPathname()] )
 							){
-								$class = str_replace('/','.',substr($f->getPathname(),strlen($r)+1));
-								$list[$fi->getPathname()] = array($class.'::'.substr($fi->getFilename(),0,-4),self::get_summary($fi->getPathname()));
+								if(strpos($f->getPathname(),'phar://') !== false){
+									$class = $realpath.'#'.str_replace('/','.',substr($f->getPathname(),strpos($f->getPathname(),'.phar/')+6));
+								}else{
+									$class = str_replace('/','.',substr($f->getPathname(),strlen($r)+1));
+								}
+								$list[$fi->getPathname()] = array($class.'::'.substr($fi->getFilename(),0,-4),
+																self::get_summary($fi->getPathname())
+															);
 							}
 						}
 					}
@@ -456,7 +471,7 @@ namespace{
 	\cmdman\Command::init();
 	
 	$usage = function(){
-		\cmdman\Std::println('cmdman 0.1.0 (PHP '.phpversion().')');
+		\cmdman\Std::println('cmdman 0.2.0 (PHP '.phpversion().')');
 		$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
 		\cmdman\Std::println_info(sprintf('Type \'%s %s subcommand --help\' for usage.'.PHP_EOL,basename($php),basename(__FILE__)));
 		\cmdman\Std::println_primary('Subcommands:');		
@@ -481,7 +496,7 @@ namespace{
 		if(is_file(\cmdman\Args::cmd())){
 			$list = array();
 			$usage();
-			\cmdman\Command::find_cmd($list,new \Phar(realpath(\cmdman\Args::cmd())));
+			\cmdman\Command::find_cmd($list,new \Phar(realpath(\cmdman\Args::cmd())),null,\cmdman\Args::cmd());
 			$show($list);
 			exit;
 		}else{
