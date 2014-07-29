@@ -284,13 +284,16 @@ namespace cmdman{
 			\cmdman\Std::println('    '.str_replace("\n","\n    ",$doc)."\n");
 		}
 		public static function find_cmd(&$list,$r,$hastrace=true){
-			$it = $r;
-			if(!($r instanceof \RecursiveDirectoryIterator)){
+			if($r instanceof \RecursiveDirectoryIterator){
+				$it = $r;
+				$r = $r->getFilename();				
+			}else{
 				$it = new \RecursiveDirectoryIterator($r,\FilesystemIterator::CURRENT_AS_FILEINFO|\FilesystemIterator::SKIP_DOTS|\FilesystemIterator::UNIX_PATHS);
 			}
 			$it = new \RecursiveIteratorIterator($it
 				,\RecursiveIteratorIterator::SELF_FIRST
 			);
+			// TODO
 			foreach($it as $f){
 				if(
 					$f->isDir() &&
@@ -478,9 +481,9 @@ namespace{
 		if(is_file(\cmdman\Args::cmd())){
 			$list = array();
 			$usage();
-			\cmdman\Command::find_cmd($list,new \Phar(realpath($cmd)));
+			\cmdman\Command::find_cmd($list,new \Phar(realpath(\cmdman\Args::cmd())));
 			$show($list);
-			exit;						
+			exit;
 		}else{
 			\cmdman\Command::doc(\cmdman\Args::cmd());
 		}
