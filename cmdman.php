@@ -67,6 +67,8 @@ namespace cmdman{
 			return self::$cmd;
 		}
 	}
+	class Notfound extends \Exception{
+	}
 	/**
 	 * command
 	 */
@@ -138,7 +140,7 @@ namespace cmdman{
 					}
 				}
 			}
-			throw new \InvalidArgumentException($command.' not found.');
+			throw new \cmdman\Notfound($command.' not found.');
 		}
 		public static function exec($command,$error_funcs=null){
 			$file = null;
@@ -491,17 +493,15 @@ namespace{
 		$list = \cmdman\Command::get_list();
 		$show($list);
 		exit;
+	}else if(is_file(\cmdman\Args::cmd())){
+		$list = array();
+		$usage();
+		\cmdman\Command::find_cmd($list,new \Phar(realpath(\cmdman\Args::cmd())),null,\cmdman\Args::cmd());
+		$show($list);
+		exit;
 	}
 	if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true){
-		if(is_file(\cmdman\Args::cmd())){
-			$list = array();
-			$usage();
-			\cmdman\Command::find_cmd($list,new \Phar(realpath(\cmdman\Args::cmd())),null,\cmdman\Args::cmd());
-			$show($list);
-			exit;
-		}else{
-			\cmdman\Command::doc(\cmdman\Args::cmd());
-		}
+		\cmdman\Command::doc(\cmdman\Args::cmd());
 		exit;
 	}
 	\cmdman\Command::exec(\cmdman\Args::cmd(),\cmdman\Args::opt('error-callback'));
