@@ -183,6 +183,10 @@ namespace cmdman{
 								$v = (float)$v;
 								break;
 							case 'boolean':
+								if(is_string($v)){
+									if($v === 'true') $v = true;
+									if($v === 'false') $v = false;
+								}
 								if(!is_bool($v)) throw $emsg;
 								$v = (boolean)$v;
 								break;
