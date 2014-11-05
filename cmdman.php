@@ -143,14 +143,14 @@ namespace cmdman{
 			throw new \cmdman\Notfound($command.' not found.');
 		}
 		public static function exec($command,$error_funcs=null){
-			$file = null;
+			$_execute_file = null;
 			try{
-				$file = self::get_file($command);
+				$_execute_file = self::get_file($command);
 				
-				if(strpos($file,'phar://') === 0){
-					include_once(preg_replace('/^phar:\/\/(.+\.phar)\/.+$/','\\1',$file));
+				if(strpos($_execute_file,'phar://') === 0){
+					include_once(preg_replace('/^phar:\/\/(.+\.phar)\/.+$/','\\1',$_execute_file));
 				}
-				if(is_file($f=dirname($file).'/__setup__.php')){
+				if(is_file($f=dirname($_execute_file).'/__setup__.php')){
 					include($f);
 				}
 				$arg = \cmdman\Args::value();
@@ -195,13 +195,13 @@ namespace cmdman{
 					}
 					$$k = ($i[2]['is_a'] ? $value : (empty($value) ? null : $value[0]));
 				}
-				include($file);
+				include($_execute_file);
 				
-				if(is_file($f=dirname($file).'/__teardown__.php')){
+				if(is_file($f=dirname($_execute_file).'/__teardown__.php')){
 					include($f);
 				}
 			}catch(\Exception $exception){
-				if(is_file($file) && is_file($f=dirname($file).'/__exception__.php')){
+				if(is_file($_execute_file) && is_file($f=dirname($_execute_file).'/__exception__.php')){
 					include($f);
 				}
 				\cmdman\Std::println_danger(PHP_EOL.'Exception: ');
