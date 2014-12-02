@@ -1,0 +1,6 @@
+<?php
+/**
+ * cccのcmd
+ */
+
+print('ccc');

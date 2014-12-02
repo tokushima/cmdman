@@ -58,6 +58,7 @@ namespace cmdman{
 		public static function cmd(){
 			if(defined('CMDMAN_CMD_REPLACE_JSON')){
 				$json = constant('CMDMAN_CMD_REPLACE_JSON');
+				
 				foreach(json_decode($json,true) as $alias => $real){
 					if(strpos(self::$cmd,$alias) === 0){
 						self::$cmd = str_replace($alias,$real,self::$cmd);
@@ -118,6 +119,16 @@ namespace cmdman{
 			krsort($include_path);
 			return array_keys($include_path);
 		}
+		private static function validdir($dir){
+			if(is_dir($dir) && 
+				ctype_upper(substr(basename($dir),0,1)) &&
+				strpos($dir,'/.') === false &&
+				strpos($dir,'/_') === false
+			){
+				return true;
+			}
+			return false;
+		}
 		private static function get_file($command){
 			$protocol = '';
 			if(strpos($command,'#') !== false){
@@ -130,13 +141,17 @@ namespace cmdman{
 
 				foreach((isset($file) ? array($file) : self::get_include_path()) as $p){
 					if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd/'.$func.'.php'))){
-						return $f;
+						if(self::validdir(dirname(dirname($f)))){
+							return $f;
+						}
 					}
 				}
 			}else{
 				foreach((isset($file) ? array($file) : self::get_include_path()) as $p){
 					if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd.php'))){
-						return $f;
+						if(self::validdir(dirname($f))){
+							return $f;
+						}
 					}
 				}
 			}
@@ -310,13 +325,7 @@ namespace cmdman{
 				,\RecursiveIteratorIterator::SELF_FIRST
 			);
 			foreach($it as $f){
-				if(
-					$f->isDir() &&
-					ctype_upper(substr($f->getFilename(),0,1)) &&
-					strpos($f->getPathname(),'/.') === false &&
-					strpos($f->getFilename(),'_') !== 0 &&
-					(!$hastrace || strpos($f->getPathname(),__DIR__) === false)
-				){
+				if(self::validdir($f->getPathname()) && (!$hastrace || strpos($f->getPathname(),__DIR__) === false)){
 					if(is_file($cf=$f->getPathname().'/cmd.php') && !isset($list[$cf])){
 						$class = str_replace('/','.',substr(dirname($cf),strlen($r)+1));
 						$list[$cf] = array($class,self::get_summary($cf));
@@ -495,12 +504,6 @@ namespace{
 	if(\cmdman\Args::cmd() == null){
 		$usage();
 		$list = \cmdman\Command::get_list();
-		$show($list);
-		exit;
-	}else if(is_file(\cmdman\Args::cmd())){
-		$list = array();
-		$usage();
-		\cmdman\Command::find_cmd($list,new \Phar(realpath(\cmdman\Args::cmd())),null,\cmdman\Args::cmd());
 		$show($list);
 		exit;
 	}
