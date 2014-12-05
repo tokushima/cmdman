@@ -94,28 +94,21 @@ namespace cmdman{
 			}			
 			if(is_dir($d=getcwd().'/lib')){
 				$include_path[realpath($d)] = true;
-			}
+			}			
 			if(class_exists('Composer\Autoload\ClassLoader')){
 				$r = new \ReflectionClass('Composer\Autoload\ClassLoader');
-				$composer_dir = dirname($r->getFileName());
-				
-				if(is_file($bf=realpath(dirname($composer_dir).'/autoload.php'))){
-					ob_start();
-						include_once($bf);
-						if(is_file($composer_dir.'/autoload_namespaces.php')){
-							$class_loader = include($bf);
-
-							foreach($class_loader->getPrefixes() as $v){
-								foreach($v as $p){
-									if(($rp = realpath($p)) !== false){
-										$include_path[$rp] = true;
-									}
-								}
-							}
+				$vendor_dir = dirname(dirname($r->getFileName()));
+					
+				if(is_file($loader_php=$vendor_dir.'/autoload.php')){
+					$loader = include($loader_php);
+					// vendor以外の定義されているパスを探す
+					foreach($loader->getPrefixes() as $ns){
+						foreach($ns as $path){
+							$include_path[$path] = true;
 						}
-					ob_end_clean();
+					}
 				}
-			}
+			}			
 			krsort($include_path);
 			return array_keys($include_path);
 		}
