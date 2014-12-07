@@ -94,7 +94,7 @@ namespace cmdman{
 			}			
 			if(is_dir($d=getcwd().'/lib')){
 				$include_path[realpath($d)] = true;
-			}			
+			}
 			if(class_exists('Composer\Autoload\ClassLoader')){
 				$r = new \ReflectionClass('Composer\Autoload\ClassLoader');
 				$vendor_dir = dirname(dirname($r->getFileName()));
@@ -494,15 +494,72 @@ namespace{
 		}
 		\cmdman\Std::println();		
 	};
+	$get_list = function(){
+		$list = \cmdman\Command::get_list();
+		$list[] = array('extract','Extract the contents of a phar archive');
+		$list[] = array('gettestman','Download Testman');
+		$list[] = array('getcomposer','Download Composer');
+		$list[] = array('composer','Composer update (--prefer-dist)');
+		return $list;
+	};
 	if(\cmdman\Args::cmd() == null){
 		$usage();
-		$list = \cmdman\Command::get_list();
+		$list = $get_list();
 		$show($list);
 		exit;
 	}
 	if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true){
-		\cmdman\Command::doc(\cmdman\Args::cmd());
+		try{
+			\cmdman\Command::doc(\cmdman\Args::cmd());
+		}catch(\cmdman\Notfound $e){
+			foreach($get_list() as $cmd){
+				if(\cmdman\Args::cmd() == $cmd[0]){
+					\cmdman\Std::println('Usage: '.$cmd[1]);
+					exit;
+				}
+			}
+			throw $e;
+		}
 		exit;
+	}else{
+		switch(\cmdman\Args::cmd()){
+			case 'getcomposer':
+				file_put_contents('composer.phar',file_get_contents('https://getcomposer.org/installer'));
+				\cmdman\Std::println_success('Downloading.. composer.phar');
+				exit;
+			case 'gettestman':
+				file_put_contents('testman.phar',file_get_contents('http://git.io/testman.phar'));
+				\cmdman\Std::println_success('Downloading.. testman.phar');
+				exit;
+			case 'extract':
+				(new Phar(\cmdman\Args::value()))->extractTo(\cmdman\Args::opt('o',getcwd().'/'.basename(\cmdman\Args::value(),'.phar')));
+				exit;
+			case 'composer':
+				$composer = null;
+				if(is_file($f=getcwd().'/composer.phar')){
+					$composer = $f;
+				}else if(is_file($f=getcwd().'/libs/composer.phar')){
+					$composer = $f;
+				}else if(class_exists('Composer\Autoload\ClassLoader')){
+					$r = new \ReflectionClass('Composer\Autoload\ClassLoader');
+					if(is_file($f=dirname(dirname(dirname($r->getFileName())).'/composer.phar'))){
+						$composer = $f;
+					}
+				}
+				if(!empty($composer)){
+					include_once('phar://'.$composer.'/src/bootstrap.php');
+					
+					if(class_exists('Composer\Console\Application')){
+						chdir(dirname($composer));
+						
+						$app = new \Composer\Console\Application();
+						$app->run(new \Symfony\Component\Console\Input\ArgvInput(array('','update','--prefer-dist')));
+						exit;
+					}
+				}
+				\cmdman\Std::println_danger('composer.phar not found');
+				exit;
+		}
 	}
 	\cmdman\Command::exec(\cmdman\Args::cmd(),\cmdman\Args::opt('error-callback'));
 }
