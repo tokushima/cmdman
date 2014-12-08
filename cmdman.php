@@ -58,7 +58,6 @@ namespace cmdman{
 		public static function cmd(){
 			if(defined('CMDMAN_CMD_REPLACE_JSON')){
 				$json = constant('CMDMAN_CMD_REPLACE_JSON');
-				
 				foreach(json_decode($json,true) as $alias => $real){
 					if(strpos(self::$cmd,$alias) === 0){
 						self::$cmd = str_replace($alias,$real,self::$cmd);
@@ -108,7 +107,7 @@ namespace cmdman{
 						}
 					}
 				}
-			}			
+			}
 			krsort($include_path);
 			return array_keys($include_path);
 		}
@@ -151,10 +150,8 @@ namespace cmdman{
 			throw new \cmdman\Notfound($command.' not found.');
 		}
 		public static function exec($command,$error_funcs=null){
-			$_execute_file = null;
+			$_execute_file = self::get_file($command);
 			try{
-				$_execute_file = self::get_file($command);
-				
 				if(strpos($_execute_file,'phar://') === 0){
 					include_once(preg_replace('/^phar:\/\/(.+\.phar)\/.+$/','\\1',$_execute_file));
 				}
@@ -307,7 +304,7 @@ namespace cmdman{
 			\cmdman\Std::println("\n  Description:");
 			\cmdman\Std::println('    '.str_replace("\n","\n    ",$doc)."\n");
 		}
-		public static function find_cmd(&$list,$r,$hastrace=true,$realpath=null){
+		public static function find_cmd(&$list,$r,$realpath=null){
 			if($r instanceof \RecursiveDirectoryIterator){
 				$it = $r;
 				$r = $r->getFilename();				
@@ -318,7 +315,7 @@ namespace cmdman{
 				,\RecursiveIteratorIterator::SELF_FIRST
 			);
 			foreach($it as $f){
-				if(self::validdir($f->getPathname()) && (!$hastrace || strpos($f->getPathname(),__DIR__) === false)){
+				if(self::validdir($f->getPathname())){
 					if(is_file($cf=$f->getPathname().'/cmd.php') && !isset($list[$cf])){
 						$class = str_replace('/','.',substr(dirname($cf),strlen($r)+1));
 						$list[$cf] = array($class,self::get_summary($cf));
@@ -346,12 +343,10 @@ namespace cmdman{
 			}				
 		}
 		public static function get_list(){
-			$list = array();
-			$hastrace = (count(debug_backtrace(false)) > 1);
-			
+			$list = array();			
 			foreach(self::get_include_path() as $p){
 				if(($r = realpath($p)) !== false){
-					self::find_cmd($list,$r,$hastrace);
+					self::find_cmd($list,$r);
 				}
 			}
 			return $list;
@@ -507,6 +502,12 @@ namespace{
 		$list = $get_list();
 		$show($list);
 		exit;
+	}else if(is_file(\cmdman\Args::cmd())){ // find phar file
+		$list = array();
+		$usage();
+		\cmdman\Command::find_cmd($list,new \Phar(realpath(\cmdman\Args::cmd())),\cmdman\Args::cmd());
+		$show($list);
+		exit;
 	}
 	if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true){
 		try{
@@ -521,28 +522,48 @@ namespace{
 			throw $e;
 		}
 		exit;
-	}else{
+	}
+	
+	try{
+		\cmdman\Command::exec(\cmdman\Args::cmd(),\cmdman\Args::opt('error-callback'));
+	}catch(\cmdman\Notfound $e){
 		switch(\cmdman\Args::cmd()){
 			case 'getcomposer':
-				file_put_contents('composer.phar',file_get_contents('https://getcomposer.org/installer'));
-				\cmdman\Std::println_success('Downloading.. composer.phar');
+				\cmdman\Std::println_info('Downloading.. composer.phar');
+				$src = file_get_contents('https://getcomposer.org/installer');
+				eval('?>'.$src);
 				exit;
 			case 'gettestman':
+				\cmdman\Std::println_info('Downloading.. testman.phar');
 				file_put_contents('testman.phar',file_get_contents('http://git.io/testman.phar'));
-				\cmdman\Std::println_success('Downloading.. testman.phar');
+				
+				if(is_file($f='testman.phar')){
+					\cmdman\Std::println_success('Written '.realpath($f));
+				}else{
+					\cmdman\Std::println_danger('Download fail..');
+				}				
 				exit;
 			case 'extract':
-				(new Phar(\cmdman\Args::value()))->extractTo(\cmdman\Args::opt('o',getcwd().'/'.basename(\cmdman\Args::value(),'.phar')));
+				$pahr = \cmdman\Args::value();
+				
+				if(is_file($pahr)){
+					(new Phar($pahr))->extractTo(\cmdman\Args::opt('o',getcwd().'/'.basename($pahr,'.phar')));
+				}else{
+					\cmdman\Std::println_danger($pahr.' not found');
+				}
 				exit;
 			case 'composer':
 				$composer = null;
-				if(is_file($f=getcwd().'/composer.phar')){
-					$composer = $f;
-				}else if(is_file($f=getcwd().'/libs/composer.phar')){
-					$composer = $f;
-				}else if(class_exists('Composer\Autoload\ClassLoader')){
+				if(class_exists('Composer\Autoload\ClassLoader')){
 					$r = new \ReflectionClass('Composer\Autoload\ClassLoader');
 					if(is_file($f=dirname(dirname(dirname($r->getFileName())).'/composer.phar'))){
+						$composer = $f;
+					}
+				}
+				if(empty($composer)){
+					if(is_file($f=getcwd().'/composer.phar')){
+						$composer = $f;
+					}else if(is_file($f=getcwd().'/libs/composer.phar')){
 						$composer = $f;
 					}
 				}
@@ -551,7 +572,7 @@ namespace{
 					
 					if(class_exists('Composer\Console\Application')){
 						chdir(dirname($composer));
-						
+		
 						$app = new \Composer\Console\Application();
 						$app->run(new \Symfony\Component\Console\Input\ArgvInput(array('','update','--prefer-dist')));
 						exit;
@@ -560,7 +581,7 @@ namespace{
 				\cmdman\Std::println_danger('composer.phar not found');
 				exit;
 		}
+		\cmdman\Std::println_danger(\cmdman\Args::cmd().': command not found');
 	}
-	\cmdman\Command::exec(\cmdman\Args::cmd(),\cmdman\Args::opt('error-callback'));
 }
 
