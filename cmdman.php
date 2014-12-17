@@ -209,7 +209,7 @@ namespace cmdman{
 				if(is_file($_execute_file) && is_file($f=dirname($_execute_file).'/__exception__.php')){
 					include($f);
 				}
-				\cmdman\Std::println_danger(PHP_EOL.'Exception: ');
+				\cmdman\Std::println_danger(PHP_EOL.'Exception: ('.get_class($exception).')');
 				\cmdman\Std::println(implode(' ',explode(PHP_EOL,PHP_EOL.$exception->getMessage())));
 				\cmdman\Std::println();
 				
