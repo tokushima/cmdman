@@ -577,30 +577,52 @@ namespace{
         }
         exit;
       case 'testman':
-        $test_dir = getcwd().'/test';
-        if(is_dir($test_dir)){
+        $testdir = getcwd().'/test';
+        if(is_dir($testdir)){
           if(is_file($testman=getcwd().'/test/testman.phar')){
             include_once('phar://'.$testman);
-            \testman\Runner::init($test_dir);
+            \testman\Runner::init($testdir);
             
             if(($keyword = \cmdman\Args::opt('list',false)) !== false){
               $cwd = getcwd().DIRECTORY_SEPARATOR;
             
-              foreach(\testman\Runner::get_list($test_dir) as $test_path){
-                $test = str_replace($cwd,'',$test_path);
-                  
-                if($keyword === true || strpos($test,$keyword) !== false){
-                  \cmdman\Std::println_info($test);
-                }
+              $summary = function($file){
+              	$src = file_get_contents($file);
+              	$summary = '';
+              
+              	if(preg_match('/\/\*.+?\*\//s',$src,$m)){
+              		list($summary) = explode(PHP_EOL,trim(
+              				preg_replace('/@.+/','',
+              						preg_replace("/^[\s]*\*[\s]{0,1}/m","",str_replace(array("/"."**","*"."/"),"",$m[0]))
+              				)
+              		));
+              	}
+              	return $summary;
+              };
+              $len = 8;
+              $test_list = array();
+              foreach(\testman\Runner::get_list($testdir) as $test_path){
+              	if($keyword === true || strpos($test,$keyword) !== false){
+              		$name = str_replace($cwd,'',$test_path);
+              
+              		if($len < strlen($name)){
+              			$len = strlen($name);
+              		}
+              		$test_list[$name] = $test_path;
+              	}
+              }
+              
+              foreach($test_list as $name => $path){
+              	\cmdman\Std::println('  '.str_pad($name,$len).' : '.$summary($path));
               }
             }else{
-              \testman\Runner::start(\cmdman\Args::value($test_dir));
+              \testman\Runner::start(\cmdman\Args::value($testdir));
             }
           }else{
             \cmdman\Std::println_danger('test/testman.phar not found');
           }
         }else{
-          \cmdman\Std::println_danger($test_dir.' not found');
+          \cmdman\Std::println_danger($testdir.' not found');
         }
         exit;
       case 'extract':
