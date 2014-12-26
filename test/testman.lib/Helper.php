@@ -7,6 +7,6 @@ class Helper{
 		return implode(PHP_EOL,$rtn);
 	}
 	static public function result_path($path){
-		return dirname(dirname(dirname(__DIR__))).$path;
+		return dirname(dirname(__DIR__)).$path;
 	}
 }
