@@ -492,8 +492,9 @@ namespace{
 	$get_list = function(){
 		$list = \cmdman\Command::get_list();
 		$list[] = array('extract','Extract the contents of a phar archive');
+		$list[] = array('getebi','Download ebi');		
 		$list[] = array('gettestman','Download Testman');
-		$list[] = array('testman','Testman execute');		
+		$list[] = array('testman','Testman execute');
 		$list[] = array('getcomposer','Download Composer');
 		$list[] = array('composer','Composer update (--prefer-dist)');
 		return $list;
@@ -529,6 +530,18 @@ namespace{
 		\cmdman\Command::exec(\cmdman\Args::cmd(),\cmdman\Args::opt('error-callback'));
 	}catch(\cmdman\Notfound $e){
 		switch(\cmdman\Args::cmd()){
+			case 'getebi':
+				\cmdman\Std::println_info('Downloading.. ebi.phar');
+				$ebi = getcwd().'/ebi.phar';
+				file_put_contents($ebi,file_get_contents('http://git.io/ebi.phar'));
+				
+				if(is_file($f=$ebi)){
+					\cmdman\Std::println_success('Written '.realpath($f));
+					\cmdman\Std::println_warning('Use it: php cmdman.phar ebi.phar');
+				}else{
+					\cmdman\Std::println_danger('Download fail..');
+				}
+				exit;
 			case 'getcomposer':
 				\cmdman\Std::println_info('Downloading.. composer.phar');
 				$src = file_get_contents('https://getcomposer.org/installer');
@@ -585,6 +598,8 @@ namespace{
 						
 						if(($keyword = \cmdman\Args::opt('list',false)) !== false){
 							\testman\Finder::summary_list($testdir,$keyword);
+						}else if((\testman\Args::opt('vars',false)) !== false){
+							\testman\Finder::vars_list($testdir);
 						}else{
 							foreach(array('coverage','output','coverage-dir') as $k){
 								if(($v = \cmdman\Args::opt($k,null)) !== null && !is_bool($v)){
