@@ -472,9 +472,10 @@ namespace{
 	}
 	\cmdman\Args::init();
 	\cmdman\Command::init();
-	
-	$usage = function(){
-		\cmdman\Std::println('cmdman 0.3.3 (PHP '.phpversion().')');
+
+	$version = '0.3.3';
+	$usage = function() use($version){
+		\cmdman\Std::println('cmdman '.$version.' (PHP '.phpversion().')');
 		$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
 		\cmdman\Std::println_info(sprintf('Type \'%s %s subcommand --help\' for usage.'.PHP_EOL,basename($php),basename(__FILE__)));
 		\cmdman\Std::println_primary('Subcommands:');		
@@ -491,13 +492,12 @@ namespace{
 	};
 	$get_list = function(){
 		$list = \cmdman\Command::get_list();
-		$list[] = array('extract','Extract the contents of a phar archive');
-		$list[] = array('getebi','Download ebi');		
-		$list[] = array('gettestman','Download Testman');
-		$list[] = array('testman','Testman execute');
+		$list[] = array('getebi','Download ebi');
+		$list[] = array('gettestman','Download testman');
 		$list[] = array('getcomposer','Download Composer');
 		$list[] = array('composer','Composer update (--prefer-dist)');
-		return $list;
+		$list[] = array('extract','Extract the contents of a phar archive');		
+		return $list;		
 	};
 	if(\cmdman\Args::cmd() == null){
 		$usage();
