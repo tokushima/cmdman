@@ -474,7 +474,7 @@ namespace{
 	\cmdman\Command::init();
 	
 	$usage = function(){
-		\cmdman\Std::println('cmdman 0.3.2 (PHP '.phpversion().')');
+		\cmdman\Std::println('cmdman 0.3.3 (PHP '.phpversion().')');
 		$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
 		\cmdman\Std::println_info(sprintf('Type \'%s %s subcommand --help\' for usage.'.PHP_EOL,basename($php),basename(__FILE__)));
 		\cmdman\Std::println_primary('Subcommands:');		
@@ -587,32 +587,6 @@ namespace{
 					\cmdman\Std::println_success('Written '.realpath($f));
 				}else{
 					\cmdman\Std::println_danger('Download fail..');
-				}
-				exit;
-			case 'testman':
-				$testdir = getcwd().'/test';
-				
-				if(is_dir($testdir)){
-					if(is_file($testman=getcwd().'/test/testman.phar')){
-						include_once('phar://'.$testman);
-						
-						if(($keyword = \cmdman\Args::opt('list',false)) !== false){
-							\testman\Finder::summary_list($testdir,$keyword);
-						}else if((\testman\Args::opt('vars',false)) !== false){
-							\testman\Finder::vars_list($testdir);
-						}else{
-							foreach(array('coverage','output','coverage-dir') as $k){
-								if(($v = \cmdman\Args::opt($k,null)) !== null && !is_bool($v)){
-									\testman\Conf::set($k,$v);
-								}
-							}
-							\testman\Runner::start(\cmdman\Args::value($testdir));
-						}
-					}else{
-						\cmdman\Std::println_danger('test/testman.phar not found');
-					}
-				}else{
-					\cmdman\Std::println_danger($testdir.' not found');
 				}
 				exit;
 			case 'extract':
