@@ -497,7 +497,7 @@ namespace{
 		$list[] = array('getcomposer','Download Composer');
 		$list[] = array('composer','Composer update (--prefer-dist)');
 		$list[] = array('extract','Extract the contents of a phar archive');		
-		return $list;		
+		return $list;
 	};
 	if(\cmdman\Args::cmd() == null){
 		$usage();
