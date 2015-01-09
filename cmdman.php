@@ -412,7 +412,7 @@ namespace cmdman{
 		 * White
 		 * @param string $msg
 		 */
-		public static function println_default($msg){
+		public static function println_white($msg){
 			self::println($msg,'37');
 		}
 		/**
