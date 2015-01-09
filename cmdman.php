@@ -480,7 +480,7 @@ namespace{
 	\cmdman\Args::init();
 	\cmdman\Command::init();
 
-	$version = '0.3.3';
+	$version = '0.3.4';
 	$usage = function() use($version){
 		\cmdman\Std::println('cmdman '.$version.' (PHP '.phpversion().')');
 		$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
@@ -497,18 +497,9 @@ namespace{
 		}
 		\cmdman\Std::println();		
 	};
-	$get_list = function(){
-		$list = \cmdman\Command::get_list();
-		$list[] = array('getebi','Download ebi');
-		$list[] = array('gettestman','Download testman');
-		$list[] = array('getcomposer','Download Composer');
-		$list[] = array('composer','Composer update (--prefer-dist)');
-		$list[] = array('extract','Extract the contents of a phar archive');		
-		return $list;
-	};
 	if(\cmdman\Args::cmd() == null){
 		$usage();
-		$list = $get_list();
+		$list = \cmdman\Command::get_list();
 		$show($list);
 		exit;
 	}else if(is_file(\cmdman\Args::cmd())){ // find phar file
@@ -522,7 +513,7 @@ namespace{
 		try{
 			\cmdman\Command::doc(\cmdman\Args::cmd());
 		}catch(\cmdman\Notfound $e){
-			foreach($get_list() as $cmd){
+			foreach(\cmdman\Command::get_list() as $cmd){
 				if(\cmdman\Args::cmd() == $cmd[0]){
 					\cmdman\Std::println('Usage: '.$cmd[1]);
 					exit;
@@ -536,76 +527,6 @@ namespace{
 	try{
 		\cmdman\Command::exec(\cmdman\Args::cmd(),\cmdman\Args::opt('error-callback'));
 	}catch(\cmdman\Notfound $e){
-		switch(\cmdman\Args::cmd()){
-			case 'getebi':
-				\cmdman\Std::println_info('Downloading.. ebi.phar');
-				$ebi = getcwd().'/ebi.phar';
-				file_put_contents($ebi,file_get_contents('http://git.io/ebi.phar'));
-				
-				if(is_file($f=$ebi)){
-					\cmdman\Std::println_success('Written '.realpath($f));
-					\cmdman\Std::println_warning('Use it: php cmdman.phar ebi.phar');
-				}else{
-					\cmdman\Std::println_danger('Download fail..');
-				}
-				exit;
-			case 'getcomposer':
-				\cmdman\Std::println_info('Downloading.. composer.phar');
-				$src = file_get_contents('https://getcomposer.org/installer');
-				eval('?>'.$src);
-				exit;
-			case 'composer':
-				$composer = null;
-				if(class_exists('Composer\Autoload\ClassLoader')){
-					$r = new \ReflectionClass('Composer\Autoload\ClassLoader');
-					if(is_file($f=dirname(dirname(dirname($r->getFileName())).'/composer.phar'))){
-						$composer = $f;
-					}
-				}
-				if(empty($composer)){
-					if(is_file($f=getcwd().'/composer.phar')){
-						$composer = $f;
-					}else if(is_file($f=getcwd().'/libs/composer.phar')){
-						$composer = $f;
-					}
-				}
-				if(!empty($composer)){
-					include_once('phar://'.$composer.'/src/bootstrap.php');
-						
-					if(class_exists('Composer\Console\Application')){
-						chdir(dirname($composer));
-			
-						$app = new \Composer\Console\Application();
-						$app->run(new \Symfony\Component\Console\Input\ArgvInput(array('','update','--prefer-dist')));
-						exit;
-					}
-				}
-				\cmdman\Std::println_danger('composer.phar not found');
-				exit;
-			case 'gettestman':
-				\cmdman\Std::println_info('Downloading.. testman.phar');
-				if(!is_dir($dir=getcwd().'/test')){
-					mkdir($dir,0777,true);
-				}
-				$testman = getcwd().'/test/testman.phar';
-				file_put_contents($testman,file_get_contents('http://git.io/testman.phar'));
-				
-				if(is_file($f=$testman)){
-					\cmdman\Std::println_success('Written '.realpath($f));
-				}else{
-					\cmdman\Std::println_danger('Download fail..');
-				}
-				exit;
-			case 'extract':
-				$pahr = \cmdman\Args::value();
-				
-				if(is_file($pahr)){
-					(new Phar($pahr))->extractTo(\cmdman\Args::opt('o',getcwd().'/'.basename($pahr,'.phar')));
-				}else{
-					\cmdman\Std::println_danger($pahr.' not found');
-				}
-				exit;
-		}
 		\cmdman\Std::println_danger(\cmdman\Args::cmd().': command not found');
 	}
 }
