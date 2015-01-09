@@ -409,6 +409,13 @@ namespace cmdman{
 			}
 		}
 		/**
+		 * Default
+		 * @param string $msg
+		 */
+		public static function println_default($msg){
+			self::println($msg);
+		}
+		/**
 		 * White
 		 * @param string $msg
 		 */
