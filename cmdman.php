@@ -395,18 +395,33 @@ namespace cmdman{
 			return self::read($msg,$default,$choice,$multiline,true);
 		}
 		/**
+		 * 色装飾
+		 * @param string $value
+		 * @param mixed $fmt
+		 */
+		static public function color($value,$fmt=null){
+			if(substr(PHP_OS,0,3) == 'WIN'){
+				$value = mb_convert_encoding($value,'UTF-8','SJIS');
+			}else if($fmt !== null){
+				$fmt = ($fmt === true) ? '1;34' : (($fmt === false) ? '1;31' : $fmt);
+				$value = "\033[".$fmt.'m'.$value."\033[0m";
+			}
+			return $value;
+		}
+		/**
+		 * バックスペース
+		 * @param integer $len
+		 */
+		static public function backspace($len){
+			print("\033[".$len.'D'."\033[0K");
+		}
+		/**
 		 * 色付きでプリント
 		 * @param string $msg
 		 * @param string $color ANSI Colors
 		 */
 		public static function println($msg='',$color='0'){
-			if(substr(PHP_OS,0,3) != 'WIN'){
-				print("\033[".$color."m");
-				print($msg.PHP_EOL);
-				print("\033[0m");
-			}else{
-				print($msg.PHP_EOL);
-			}
+			print(self::color($msg,$color).PHP_EOL);
 		}
 		/**
 		 * Default
@@ -480,7 +495,7 @@ namespace{
 	\cmdman\Args::init();
 	\cmdman\Command::init();
 
-	$version = '0.3.4';
+	$version = '0.3.5';
 	$usage = function() use($version){
 		\cmdman\Std::println('cmdman '.$version.' (PHP '.phpversion().')');
 		$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
