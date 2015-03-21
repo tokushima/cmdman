@@ -349,6 +349,7 @@ namespace cmdman{
 					self::find_cmd($list,$r);
 				}
 			}
+			ksort($list);
 			return $list;
 		}
 	}
