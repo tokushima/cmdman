@@ -541,6 +541,9 @@ namespace{
 	}else if(cmdman\Args::cmd() == 'composer.phar'){
 		$composer_json = <<< _JSON_
 {
+	"config":{
+		"preferred-install": "dist"
+	},
 	"require": {
 		"tokushima/ebi": "dev-master"
 	}
