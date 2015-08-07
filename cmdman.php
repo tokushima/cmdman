@@ -483,9 +483,13 @@ namespace{
 	set_error_handler(function($n,$s,$f,$l){
 		throw new \ErrorException($s,0,$n,$f,$l);
 	});
-	if(ini_get('date.timezone') == '') date_default_timezone_set('Asia/Tokyo');
+	if(ini_get('date.timezone') == ''){
+		date_default_timezone_set('Asia/Tokyo');
+	}
 	if(extension_loaded('mbstring')){
-		if('neutral' == mb_language()) mb_language('Japanese');
+		if('neutral' == mb_language()){
+			mb_language('Japanese');
+		}
 		mb_internal_encoding('UTF-8');
 	}
 	if(isset($_SERVER['SERVER_PORT'])){
@@ -496,10 +500,11 @@ namespace{
 	\cmdman\Args::init();
 	\cmdman\Command::init();
 
-	$version = '0.3.5';
+	$version = '0.3.6';
 	$usage = function() use($version){
-		\cmdman\Std::println('cmdman '.$version.' (PHP '.phpversion().')');
 		$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
+		
+		\cmdman\Std::println('cmdman '.$version.' (PHP '.phpversion().')');
 		\cmdman\Std::println_info(sprintf('Type \'%s %s subcommand --help\' for usage.'.PHP_EOL,basename($php),basename(__FILE__)));
 		\cmdman\Std::println_primary('Subcommands:');		
 	};
@@ -513,10 +518,40 @@ namespace{
 		}
 		\cmdman\Std::println();		
 	};
+	
 	if(\cmdman\Args::cmd() == null){
 		$usage();
 		$list = \cmdman\Command::get_list();
+		
+		if(empty($list)){
+			$list = array(
+				'ebi.phar'=>array('ebi.phar','Download ebi.phar'),
+				'composer.phar'=>array('composer.phar','Download composer.phar')
+			);
+		}
 		$show($list);
+		exit;
+	}else if(cmdman\Args::cmd() == 'ebi.phar'){
+		file_put_contents('ebi.phar',file_get_contents('http://git.io/ebi.phar'));
+		
+		if(is_file('ebi.phar')){
+			\cmdman\Std::println_success('ebi successfully installed to: '.realpath('ebi.phar'));
+		}
+		exit;
+	}else if(cmdman\Args::cmd() == 'composer.phar'){
+		$composer_json = <<< _JSON_
+{
+	"require": {
+		"tokushima/ebi": "dev-master"
+	}
+}
+_JSON_;
+
+		if(!is_file('composer.json')){
+			file_put_contents('composer.json',$composer_json);
+			\cmdman\Std::println_success('Written: '.realpath('composer.json'));
+		}
+		eval('?>'.file_get_contents('https://getcomposer.org/installer'));
 		exit;
 	}else if(is_file(\cmdman\Args::cmd())){ // find phar file
 		$list = array();
