@@ -74,7 +74,10 @@ namespace cmdman{
 	 */
 	class Command{
 		public static function init(){
-			if(is_file($f=getcwd().'/bootstrap.php') || is_file($f=getcwd().'/vendor/autoload.php')){
+			if(is_file($f=getcwd().'/bootstrap.php') || 
+				is_file($f=getcwd().'/vendor/autoload.php') || 
+				is_file($f=getcwd().'/ebi.phar')
+			){
 				try{
 					ob_start();
 					include_once(realpath($f));
@@ -500,7 +503,7 @@ namespace{
 	\cmdman\Args::init();
 	\cmdman\Command::init();
 
-	$version = '0.3.6';
+	$version = '0.3.7';
 	$usage = function() use($version){
 		$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
 		
