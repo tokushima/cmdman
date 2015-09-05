@@ -531,14 +531,14 @@ namespace{
 		}
 		$show($list);
 		exit;
-	}else if(cmdman\Args::cmd() == 'ebi.phar'){
+	}else if(cmdman\Args::cmd() == 'ebi.phar' && !is_file('ebi.phar')){
 		file_put_contents('ebi.phar',file_get_contents('http://git.io/ebi.phar'));
 		
 		if(is_file('ebi.phar')){
 			\cmdman\Std::println_success('ebi successfully installed to: '.realpath('ebi.phar'));
 		}
 		exit;
-	}else if(cmdman\Args::cmd() == 'composer.phar'){
+	}else if(cmdman\Args::cmd() == 'composer.phar' && !is_file('composer.phar')){
 		$composer_json = <<< _JSON_
 {
 	"config":{
