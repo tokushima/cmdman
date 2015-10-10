@@ -80,7 +80,7 @@ namespace cmdman{
 			){
 				try{
 					ob_start();
-					include_once(realpath($f));
+						include_once(realpath($f));
 					ob_end_clean();
 				}catch(\Exception $e){
 				}
@@ -134,8 +134,10 @@ namespace cmdman{
 			if(strpos($command,'::') !== false){
 				list($command,$func) = explode('::',$command,2);
 
-				foreach((isset($file) ? array($file) : self::get_include_path()) as $p){
-					if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd/'.$func.'.php'))){
+				foreach((isset($file) ? array($file) : self::get_include_path()) as $p){					
+					if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd/'.$func.'.php')) || 
+						is_file($f=($protocol.$p.'/src/'.str_replace('.','/',$command).'/cmd/'.$func.'.php'))
+					){
 						if(self::validdir(dirname(dirname($f)))){
 							return $f;
 						}
@@ -143,7 +145,9 @@ namespace cmdman{
 				}
 			}else{
 				foreach((isset($file) ? array($file) : self::get_include_path()) as $p){
-					if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd.php'))){
+					if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd.php')) ||
+						is_file($f=($protocol.$p.'/src/'.str_replace('.','/',$command).'/cmd.php'))
+					){
 						if(self::validdir(dirname($f))){
 							return $f;
 						}
@@ -312,7 +316,9 @@ namespace cmdman{
 				$it = $r;
 				$r = $r->getFilename();				
 			}else{
-				$it = new \RecursiveDirectoryIterator($r,\FilesystemIterator::CURRENT_AS_FILEINFO|\FilesystemIterator::SKIP_DOTS|\FilesystemIterator::UNIX_PATHS);
+				$it = new \RecursiveDirectoryIterator($r,
+					\FilesystemIterator::CURRENT_AS_FILEINFO|\FilesystemIterator::SKIP_DOTS|\FilesystemIterator::UNIX_PATHS
+				);
 			}
 			$it = new \RecursiveIteratorIterator($it
 				,\RecursiveIteratorIterator::SELF_FIRST
@@ -332,13 +338,19 @@ namespace cmdman{
 								!isset($list[$fi->getPathname()] )
 							){
 								if(strpos($f->getPathname(),'phar://') !== false){
-									$class = $realpath.'#'.str_replace('/','.',substr($f->getPathname(),strpos($f->getPathname(),'.phar/')+6));
+									$class = $realpath.'#'.
+												preg_replace(
+													'/^(src.)/',
+													'',
+													str_replace('/','.',substr($f->getPathname(),strpos($f->getPathname(),'.phar/')+6))
+												);
 								}else{
 									$class = str_replace('/','.',substr($f->getPathname(),strlen($r)+1));
 								}
-								$list[$fi->getPathname()] = array($class.'::'.substr($fi->getFilename(),0,-4),
-																self::get_summary($fi->getPathname())
-															);
+								$list[$fi->getPathname()] = array(
+									$class.'::'.substr($fi->getFilename(),0,-4),
+									self::get_summary($fi->getPathname())
+								);
 							}
 						}
 					}
@@ -503,7 +515,7 @@ namespace{
 	\cmdman\Args::init();
 	\cmdman\Command::init();
 
-	$version = '0.3.7';
+	$version = '0.3.8';
 	$usage = function() use($version){
 		$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
 		
@@ -519,18 +531,24 @@ namespace{
 		foreach($list as $info){
 			\cmdman\Std::println('  '.str_pad($info[0],$len).' : '.$info[1]);
 		}
-		\cmdman\Std::println();		
+		\cmdman\Std::println();
 	};
-	
+
 	if(\cmdman\Args::cmd() == null){
 		$usage();
-		$list = \cmdman\Command::get_list();
 		
+		$list = \cmdman\Command::get_list();
+
 		if(empty($list)){
-			$list = array(
-				'ebi.phar'=>array('ebi.phar','Download ebi.phar'),
-				'composer.phar'=>array('composer.phar','Download composer.phar')
-			);
+			if(is_file('ebi.phar')){
+				$ebi = realpath('ebi.phar');
+				\cmdman\Command::find_cmd($list,new \Phar($ebi),basename($ebi));
+			}else{
+				$list = array(
+					'ebi.phar'=>array('ebi.phar','Download ebi.phar'),
+					'composer.phar'=>array('composer.phar','Download composer.phar')
+				);
+			}
 		}
 		$show($list);
 		exit;
@@ -559,7 +577,7 @@ _JSON_;
 		}
 		eval('?>'.file_get_contents('https://getcomposer.org/installer'));
 		exit;
-	}else if(is_file(\cmdman\Args::cmd())){ // find phar file
+	}else if(is_file(\cmdman\Args::cmd())){ // find phar file		
 		$list = array();
 		$usage();
 		\cmdman\Command::find_cmd($list,new \Phar(realpath(\cmdman\Args::cmd())),\cmdman\Args::cmd());

@@ -2,15 +2,15 @@
 /**
  *  php -d phar.readonly=0 **.php
  */
-$filename = substr(basename(__FILE__),0,strpos(basename(__FILE__),'.'));
-$output = __DIR__.'/'.$filename.'.phar';
+$output = __DIR__.'/cmdman.phar';
+$filename = 'cmdman';
 
 if(is_file($output)){
 	unlink($output);
 }
 try{
 	$phar = new Phar($output,0,$filename.'.phar');
-	$phar[$filename.'.php'] = file_get_contents(__DIR__.'/'.$filename.'.php');
+	$phar['cmdman.php'] = file_get_contents(__DIR__.'/cmdman.php');
 	$stab = <<< 'STAB'
 <?php
 		Phar::mapPhar('%s.phar');
