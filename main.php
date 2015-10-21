@@ -42,36 +42,49 @@ if(\cmdman\Args::cmd() == null){
 	$usage();
 
 	$list = \cmdman\Command::get_list();
-
-	if(empty($list)){
-		if(is_file('ebi.phar')){
-			$ebi = realpath('ebi.phar');
-			\cmdman\Command::find_cmd($list,new \Phar($ebi),basename($ebi));
-		}else{
-			$list = array(
-					'ebi.phar'=>array('ebi.phar','Download ebi.phar'),
-					'composer.phar'=>array('composer.phar','Download composer.phar')
-			);
+	
+	if(!is_file('ebi.phar')){
+		$list = array_merge($list,array(
+			'ebi.phar'=>array('ebi.phar','Download ebi.phar'),
+		));
+	}
+	$list = array_merge($list,array(
+		'composer.phar'=>array('composer.phar','Download composer.phar'),
+		'format'=>array('format','Source format'),
+		'archice'=>array('archive','create phar package'),
+	));
+	$show($list);
+	exit;
+}else{
+	if(is_file(\cmdman\Args::cmd())){ // find phar file
+		$list = array();
+		$usage();
+		\cmdman\Command::find_cmd($list,new \Phar(realpath(\cmdman\Args::cmd())),\cmdman\Args::cmd());
+		$show($list);
+		exit;
+	}else{
+		switch(\cmdman\Args::cmd()){
+			case 'composer.phar':
+				\cmdman\Cmd::download_composer();
+				break;
+			case 'ebi.phar':
+				\cmdman\Cmd::download_ebi();				
+				break;
+			case 'format':
+				\cmdman\Cmd::source_format(getcwd());
+				break;
+			case 'archive':
+				\cmdman\Cmd::phar(\cmdman\Args::value());
+				break;
+			default:
+				\cmdman\Std::println_danger(\cmdman\Args::cmd().': command not found');
 		}
+		exit;
 	}
-	$show($list);
-	exit;
-}else if(cmdman\Args::cmd() == 'ebi.phar' && !is_file('ebi.phar')){
-	file_put_contents('ebi.phar',file_get_contents('http://git.io/ebi.phar'));
-
-	if(is_file('ebi.phar')){
-		\cmdman\Std::println_success('ebi successfully installed to: '.realpath('ebi.phar'));
-	}
-	exit;
-}else if(cmdman\Args::cmd() == 'composer.phar' && !is_file('composer.phar')){
-	exit;
-}else if(is_file(\cmdman\Args::cmd())){ // find phar file
-	$list = array();
-	$usage();
-	\cmdman\Command::find_cmd($list,new \Phar(realpath(\cmdman\Args::cmd())),\cmdman\Args::cmd());
-	$show($list);
-	exit;
 }
+
+
+
 if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true){
 	try{
 		\cmdman\Command::doc(\cmdman\Args::cmd());
