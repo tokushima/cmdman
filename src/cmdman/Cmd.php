@@ -68,10 +68,10 @@ _JSON_;
 	 * @param string $src ライブラリのルートフォルダ @['require'=>true]
 	 */
 	public static function phar($src){
-		if($src === false || is_file($src)){
-			throw new \InvalidArgumentException($src.' not found');
+		if(empty($src) || ($src = realpath($src)) === false || !is_dir($src)){
+			throw new \InvalidArgumentException('Not a directory');
 		}
-		$src = realpath($src).'/';
+		$src = $src.'/';
 		$ns = '';
 		$mkdir = array();
 		$files = array();
@@ -110,7 +110,7 @@ _JSON_;
 		if(is_file($output)){
 			unlink($output);
 		}
-		\ebi\Util::mkdir(dirname($output));
+		\cmdman\Util::mkdir(dirname($output));
 
 		try{
 			$phar = new \Phar($output,0,basename($output));
@@ -134,7 +134,6 @@ _JSON_;
 		},true,false);
 STAB
 					,$ns);
-		
 
 			if(is_file('autoload.php')){
 				$phar->addFile('autoload.php','autoload.php');
@@ -153,7 +152,12 @@ STAB
 			);
 			
 			if(is_file('main.php')){
-				$stabstr = $stabstr.PHP_EOL.str_replace(array('<?php','?>'),'',file_get_contents('main.php'));
+				$phar->addFile('main.php','main.php');
+				
+				$stabstr .= sprintf(PHP_EOL
+						."require_once('phar://%s/main.php');"
+						,basename($output)
+				);
 			}
 			
 			$phar->setStub(sprintf(<<< 'STAB'
@@ -175,26 +179,25 @@ STAB
 		}catch(\Exception $e){
 			\cmdman\Std::println_danger($e->getMessage());
 			\cmdman\Std::println_warning($e->getTraceAsString());
-		}
-		
+		}		
 	}
 	
-	public static function unphar(){
-		/**
-		 * pharを展開する
-		 * @param string $f 展開したいpharファイル @['require'=>true]
-		 * @param string $o 出力先
-		 */
-		
-		$f = realpath($f);
-		
+	
+	/**
+	 * pharを展開する
+	 * @param string $f 展開したいpharファイル @['require'=>true]
+	 * @param string $o 出力先
+	 */
+	public static function unphar($f,$o=null){
+		$f = empty($f) ? false : realpath($f);
+
 		if($f === false){
-			throw new \InvalidArgumentException($f.' not foundf');
+			throw new \InvalidArgumentException('`'.$f.'` not foundf');
 		}
 		if(!empty($o) && substr($o,-1) == '/'){
 			$o = substr($o,1);
 		
-			\ebi\Util::mkdir($o);
+			\cmdman\Util::mkdir($o);
 			$o = realpath($o);
 		}
 		
@@ -205,7 +208,7 @@ STAB
 				$file = str_replace('phar://'.$f,'',$i->getPathname());
 		
 				if(!empty($o)){
-					\ebi\Util::file_write($o.$file,file_get_contents($i->getPathname()));
+					\cmdman\Util::file_write($o.$file,file_get_contents($i->getPathname()));
 					\cmdman\Std::println_info('Written '.$o.$file);
 				}else{
 					\cmdman\Std::println(' '.$file);
