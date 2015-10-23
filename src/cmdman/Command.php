@@ -60,6 +60,7 @@ class Command{
 			$file = realpath($file);
 			$protocol = 'phar://';
 		}
+		
 		if(strpos($command,'::') !== false){
 			list($command,$func) = explode('::',$command,2);
 

@@ -19,7 +19,7 @@ if(isset($_SERVER ['SERVER_PORT'])) {
 \cmdman\Args::init();
 \cmdman\Command::init();
 
-$version = '0.4.0';
+$version = '0.4.1';
 $usage = function() use($version) {
 	$php = isset($_ENV ['_']) ? $_ENV ['_'] : 'php';
 	
@@ -58,36 +58,34 @@ if(\cmdman\Args::cmd() == null) {
 	));
 	$show($list);
 	exit();
-}else {
+}else{
 	if(is_file(\cmdman\Args::cmd())) { // find phar file
 		$list = array();
 		$usage();
 		\cmdman\Command::find_cmd($list, new \Phar(realpath(\cmdman\Args::cmd())), \cmdman\Args::cmd());
 		$show($list);
 		exit();
-	}else {
+	}else{
 		switch(\cmdman\Args::cmd()) {
 			case 'composer.phar' :
 				\cmdman\Cmd::download_composer();
-				break;
+				exit();
 			case 'ebi.phar' :
 				\cmdman\Cmd::download_ebi();
-				break;
+				exit();
 			case 'format' :
 				\cmdman\Cmd::source_format(getcwd());
-				break;
+				exit();
 			case 'archive' :
 				\cmdman\Cmd::phar(\cmdman\Args::value());
-				break;
+				exit();
 			case 'extract' :
 				$args = \cmdman\Args::values();
 				
 				\cmdman\Cmd::unphar((isset($args[0]) ? $args[0] : null),(isset($args[1]) ? $args[1] : null));
-				break;
-			default :
-				\cmdman\Std::println_danger(\cmdman\Args::cmd().': command not found');
+				exit();
+			default:
 		}
-		exit();
 	}
 }
 
@@ -109,6 +107,7 @@ if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true) {
 try {
 	\cmdman\Command::exec(\cmdman\Args::cmd(), \cmdman\Args::opt('error-callback'));
 }catch(\cmdman\Notfound $e){
-	\cmdman\Std::println_danger(\cmdman\Args::cmd().': command not found');
+	$usage();
+	\cmdman\Std::println_danger(\cmdman\Args::cmd().': subcommand not found');
 }
 
