@@ -2,7 +2,7 @@
 namespace cmdman;
 
 class Args{
-	private static $opt = array();
+	public static $opt = array();
 	private static $value = array();
 	private static $cmd;
 

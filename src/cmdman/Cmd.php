@@ -3,39 +3,6 @@ namespace cmdman;
 
 class Cmd{
 	/**
-	 * ebi download
-	 */
-	public static function download_ebi(){
-		file_put_contents('ebi.phar',file_get_contents('http://git.io/ebi.phar'));
-		
-		if(is_file('ebi.phar')){
-			\cmdman\Std::println_success('ebi successfully installed to: '.realpath('ebi.phar'));
-		}
-	}
-	
-	/**
-	 * composer download
-	 */
-	public static function download_composer(){
-		$composer_json = <<< _JSON_
-{
-	"config":{
-		"preferred-install": "dist"
-	},
-	"require": {
-		"tokushima/ebi": "dev-master"
-	}
-}
-_JSON_;
-		
-		if(!is_file('composer.json')){
-			file_put_contents('composer.json',$composer_json);
-			\cmdman\Std::println_success('Written: '.realpath('composer.json'));
-		}
-		eval('?>'.file_get_contents('https://getcomposer.org/installer'));
-	}
-
-	/**
 	 * PHPファイルの改行コードをCRに統一する
 	 */
 	public static function source_format($work){
@@ -167,6 +134,8 @@ STAB
 ?>
 STAB
 					,$stabstr));
+			
+			$phar->addFromString('version',date('Ymd.His'));
 			$phar->compressFiles(\Phar::GZ);
 		
 			if(is_file($output)){

@@ -19,12 +19,13 @@ if(isset($_SERVER ['SERVER_PORT'])) {
 \cmdman\Args::init();
 \cmdman\Command::init();
 
-$version = '0.4.1';
+$version = is_file('version') ? file_get_contents('version') : date('Ymd.His');
+
 $usage = function() use($version) {
 	$php = isset($_ENV ['_']) ? $_ENV ['_'] : 'php';
 	
-	\cmdman\Std::println('cmdman '.$version.'(PHP '.phpversion().')');
-	\cmdman\Std::println_info(sprintf('Type \'%s %s subcommand --help\' for usage.'.PHP_EOL, basename($php), basename(__FILE__)));
+	\cmdman\Std::println('cmdman '.$version.' (PHP '.phpversion().')');
+	\cmdman\Std::println_info(sprintf('Type \'%s cmdman.phar subcommand --help\' for usage.'.PHP_EOL, basename($php)));
 	\cmdman\Std::println_primary('Subcommands:');
 };
 $show = function($list) {
@@ -61,18 +62,30 @@ if(\cmdman\Args::cmd() == null) {
 }else{
 	if(is_file(\cmdman\Args::cmd())) { // find phar file
 		$list = array();
+		
+		if(\cmdman\Args::opt('v') === true || \cmdman\Args::opt('version') === true){
+			if(is_file($f='phar://'.realpath(\cmdman\Args::cmd()).'/version')){
+				\cmdman\Std::println_info('Version '.file_get_contents($f));
+				exit;
+			}
+		}
 		$usage();
 		\cmdman\Command::find_cmd($list, new \Phar(realpath(\cmdman\Args::cmd())), \cmdman\Args::cmd());
 		$show($list);
-		exit();
+		exit;
 	}else{
 		switch(\cmdman\Args::cmd()) {
 			case 'composer.phar' :
-				\cmdman\Cmd::download_composer();
-				exit();
+				eval('?>'.file_get_contents('https://getcomposer.org/installer'));
+				
+				exit;
 			case 'ebi.phar' :
-				\cmdman\Cmd::download_ebi();
-				exit();
+				file_put_contents('ebi.phar',file_get_contents('http://git.io/ebi.phar'));
+				
+				if(is_file('ebi.phar')){
+					\cmdman\Std::println_success('ebi successfully installed to: '.realpath('ebi.phar'));
+				}				
+				exit;
 			case 'format' :
 				\cmdman\Cmd::source_format(getcwd());
 				exit();
