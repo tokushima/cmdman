@@ -2,6 +2,9 @@
 namespace cmdman;
 
 class Command{
+	/**
+	 * init
+	 */
 	public static function init(){
 		if(is_file($f=getcwd().'/bootstrap.php') ||
 				is_file($f=getcwd().'/vendor/autoload.php') ||
@@ -86,6 +89,12 @@ class Command{
 		}
 		throw new \cmdman\Notfound($command.' not found.');
 	}
+	/**
+	 * exec
+	 * @param string $command
+	 * @param callable $error_funcs
+	 * @throws \InvalidArgumentException
+	 */
 	public static function exec($command,$error_funcs=null){
 		$_execute_file = self::get_file($command);
 		try{
@@ -220,6 +229,10 @@ class Command{
 		}
 		return $help_params;
 	}
+	/**
+	 * ge document
+	 * @param string $command
+	 */
 	public static function doc($command){
 		$pad = 4;
 		$help_params = self::get_params($command);
@@ -241,6 +254,12 @@ class Command{
 		\cmdman\Std::println("\n  Description:");
 		\cmdman\Std::println('   '.str_replace("\n","\n  ",$doc)."\n");
 	}
+	/**
+	 * finding commnads
+	 * @param mixed $list
+	 * @param string $r
+	 * @param string $realpath
+	 */
 	public static function find_cmd(&$list,$r,$realpath=null){
 		if($r instanceof \RecursiveDirectoryIterator){
 			$it = $r;
@@ -287,6 +306,10 @@ class Command{
 			}
 		}
 	}
+	/**
+	 * get file list
+	 * @return string{}
+	 */
 	public static function get_list(){
 		$list = array();
 		foreach(self::get_include_path() as $p){

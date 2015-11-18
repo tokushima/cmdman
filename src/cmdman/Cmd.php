@@ -33,8 +33,11 @@ class Cmd{
 	/**
 	 * ライブラリをpharにする
 	 * @param string $src ライブラリのルートフォルダ @['require'=>true]
+	 * @param string $out 出力先ファイル名
 	 */
-	public static function phar($src){
+	public static function phar($src,$out=null){
+		ini_set('memory_limit',-1);
+		
 		if(empty($src) || ($src = realpath($src)) === false || !is_dir($src)){
 			throw new \InvalidArgumentException('Not a directory');
 		}
@@ -73,7 +76,11 @@ class Cmd{
 		}
 		ksort($mkdir);
 
-		$output = $ns.'.phar';
+		$output = empty($out) ? basename($ns).'.phar' : $out;
+		
+		if(substr($output,- 5) != '.phar'){
+			$output = $output.'.phar';
+		}
 		if(is_file($output)){
 			unlink($output);
 		}
@@ -136,7 +143,11 @@ STAB
 					,$stabstr));
 			
 			$phar->addFromString('version',date('Ymd.His'));
-			$phar->compressFiles(\Phar::GZ);
+			
+			try{
+				$phar->compressFiles(\Phar::GZ);
+			}catch(\BadMethodCallException $e){
+			}
 		
 			if(is_file($output)){
 				\cmdman\Std::println_info('Created '.$output.' ['.filesize($output).' byte]');
@@ -146,7 +157,7 @@ STAB
 		}catch(\UnexpectedValueException $e){
 			\cmdman\Std::println_info($e->getMessage().PHP_EOL.'usage: php -d phar.readonly=0 cmdman.phar archive '.str_replace(getcwd().'/','',$src));
 		}catch(\Exception $e){
-			\cmdman\Std::println_danger($e->getMessage());
+			\cmdman\Std::println_danger(get_class($e).': '.$e->getMessage());
 			\cmdman\Std::println_warning($e->getTraceAsString());
 		}		
 	}

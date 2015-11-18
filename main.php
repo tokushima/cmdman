@@ -90,7 +90,9 @@ if(\cmdman\Args::cmd() == null) {
 				\cmdman\Cmd::source_format(getcwd());
 				exit();
 			case 'archive' :
-				\cmdman\Cmd::phar(\cmdman\Args::value());
+				$args = \cmdman\Args::values();
+				
+				\cmdman\Cmd::phar((isset($args[0]) ? $args[0] : null),(isset($args[1]) ? $args[1] : null));
 				exit();
 			case 'extract' :
 				$args = \cmdman\Args::values();
