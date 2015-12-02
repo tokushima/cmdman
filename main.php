@@ -45,18 +45,6 @@ if(\cmdman\Args::cmd() == null) {
 	$usage();
 	
 	$list = \cmdman\Command::get_list();
-	
-	if(! is_file('ebi.phar')) {
-		$list = array_merge($list, array(
-				'ebi.phar' => array('ebi.phar','Download ebi.phar') 
-		));
-	}
-	$list = array_merge($list, array(
-		'composer.phar' => array('composer.phar','Download composer.phar'),
-		'format' => array('format','Source format'),
-		'archive' => array('archive','Creating Phar Archives'),
-		'extract' => array('extract','Extract the contents of a phar archive to a directory') 
-	));
 	$show($list);
 	exit();
 }else{
@@ -73,34 +61,6 @@ if(\cmdman\Args::cmd() == null) {
 		\cmdman\Command::find_cmd($list, new \Phar(realpath(\cmdman\Args::cmd())), \cmdman\Args::cmd());
 		$show($list);
 		exit;
-	}else{
-		switch(\cmdman\Args::cmd()) {
-			case 'composer.phar' :
-				eval('?>'.file_get_contents('https://getcomposer.org/installer'));
-				
-				exit;
-			case 'ebi.phar' :
-				file_put_contents('ebi.phar',file_get_contents('http://git.io/ebi.phar'));
-				
-				if(is_file('ebi.phar')){
-					\cmdman\Std::println_success('ebi successfully installed to: '.realpath('ebi.phar'));
-				}				
-				exit;
-			case 'format' :
-				\cmdman\Cmd::source_format(getcwd());
-				exit();
-			case 'archive' :
-				$args = \cmdman\Args::values();
-				
-				\cmdman\Cmd::phar((isset($args[0]) ? $args[0] : null),(isset($args[1]) ? $args[1] : null));
-				exit();
-			case 'extract' :
-				$args = \cmdman\Args::values();
-				
-				\cmdman\Cmd::unphar((isset($args[0]) ? $args[0] : null),(isset($args[1]) ? $args[1] : null));
-				exit();
-			default:
-		}
 	}
 }
 
