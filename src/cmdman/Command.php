@@ -159,8 +159,8 @@ class Command{
 			\cmdman\Std::println(implode(' ',explode(PHP_EOL,PHP_EOL.$exception->getMessage())));
 			\cmdman\Std::println();
 
-			if(!is_callable($error_funcs) && defined('EBICO_ERROR_CALLBACK')){
-				$error_funcs = constant('EBICO_ERROR_CALLBACK');
+			if(!is_callable($error_funcs) && defined('CMDMAN_ERROR_CALLBACK')){
+				$error_funcs = constant('CMDMAN_ERROR_CALLBACK');
 			}
 			if(is_string($error_funcs)){
 				if(strpos($error_funcs,'::') !== false){
