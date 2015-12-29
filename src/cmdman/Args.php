@@ -2,13 +2,13 @@
 namespace cmdman;
 
 class Args{
-	public static $opt = array();
-	private static $value = array();
+	public static $opt = [];
+	private static $value = [];
 	private static $cmd;
 
 	public static function init(){
-		$opt = $value = array();
-		$argv = array_slice((isset($_SERVER['argv']) ? $_SERVER['argv'] : array()),1);
+		$opt = $value = [];
+		$argv = array_slice((isset($_SERVER['argv']) ? $_SERVER['argv'] : []),1);
 			
 		if(!empty($argv) && isset($argv[0]) && substr($argv[0],0,1) != '-'){
 			self::$cmd = array_shift($argv);
@@ -42,20 +42,12 @@ class Args{
 		return isset(self::$value[0]) ? self::$value[0] : $default;
 	}
 	public static function opts($name){
-		return array_key_exists($name,self::$opt) ? self::$opt[$name] : array();
+		return array_key_exists($name,self::$opt) ? self::$opt[$name] : [];
 	}
 	public static function values(){
 		return self::$value;
 	}
 	public static function cmd(){
-		if(defined('CMDMAN_CMD_REPLACE_JSON')){
-			$json = constant('CMDMAN_CMD_REPLACE_JSON');
-			foreach(json_decode($json,true) as $alias => $real){
-				if(strpos(self::$cmd,$alias) === 0){
-					self::$cmd = str_replace($alias,$real,self::$cmd);
-				}
-			}
-		}
 		return self::$cmd;
 	}
 }

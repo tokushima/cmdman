@@ -11,7 +11,7 @@ class Std{
 	 * @param boolean $silently 入力を非表示にする(Windowsでは非表示になりません)
 	 * @return string
 	 */
-	public static function read($msg,$default=null,$choice=array(),$multiline=false,$silently=false){
+	public static function read($msg,$default=null,$choice=[],$multiline=false,$silently=false){
 		while(true){
 			$result = $b = null;
 			print($msg.(empty($choice) ? '' : ' ('.implode(' / ',$choice).')').(empty($default) ? '' : ' ['.$default.']').': ');
@@ -23,7 +23,7 @@ class Std{
 				if(!$multiline) break;
 			}
 			if($silently && substr(PHP_OS,0,3) != 'WIN') `tty -s && stty echo`;
-			$result = substr(str_replace(array("\r\n","\r","\n"),"\n",$result),0,-1);
+			$result = substr(str_replace(["\r\n","\r","\n"],"\n",$result),0,-1);
 			if(empty($result)) $result = $default;
 			if(empty($choice) || in_array($result,$choice)) return $result;
 		}
@@ -37,7 +37,7 @@ class Std{
 	 * @param boolean $multiline 複数行の入力をまつ、終了は行頭.(ドット)
 	 * @return string
 	 */
-	public static function silently($msg,$default=null,$choice=array(),$multiline=false){
+	public static function silently($msg,$default=null,$choice=[],$multiline=false){
 		return self::read($msg,$default,$choice,$multiline,true);
 	}
 	/**

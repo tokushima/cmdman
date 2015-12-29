@@ -7,19 +7,19 @@ class Command{
 	 */
 	public static function init(){
 		if(is_file($f=getcwd().'/bootstrap.php') ||
-				is_file($f=getcwd().'/vendor/autoload.php') ||
-				is_file($f=getcwd().'/ebi.phar')
+			is_file($f=getcwd().'/vendor/autoload.php') ||
+			is_file($f=getcwd().'/ebi.phar')
 		){
-			try{
+			try{				
 				ob_start();
-				include_once(realpath($f));
+					include_once(realpath($f));
 				ob_end_clean();
 			}catch(\Exception $e){
 			}
 		}
 	}
 	private static function get_include_path(){
-		$include_path = array();
+		$include_path = [];
 
 		foreach(explode(PATH_SEPARATOR,get_include_path()) as $p){
 			if(($rp = realpath($p)) !== false){
@@ -67,7 +67,7 @@ class Command{
 		if(strpos($command,'::') !== false){
 			list($command,$func) = explode('::',$command,2);
 
-			foreach((isset($file) ? array($file) : self::get_include_path()) as $p){
+			foreach((isset($file) ? [$file] : self::get_include_path()) as $p){
 				if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd/'.$func.'.php')) ||
 						is_file($f=($protocol.$p.'/src/'.str_replace('.','/',$command).'/cmd/'.$func.'.php'))
 				){
@@ -77,7 +77,7 @@ class Command{
 				}
 			}
 		}else{
-			foreach((isset($file) ? array($file) : self::get_include_path()) as $p){
+			foreach((isset($file) ? [$file] : self::get_include_path()) as $p){
 				if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd.php')) ||
 						is_file($f=($protocol.$p.'/src/'.str_replace('.','/',$command).'/cmd.php'))
 				){
@@ -108,7 +108,7 @@ class Command{
 			$args = \cmdman\Args::values();
 
 			foreach(self::get_params($command) as $k => $i){
-				$value = array();
+				$value = [];
 				$emsg = new \InvalidArgumentException('$'.$k.' must be an `'.$i[0].'`');
 				$opts = \cmdman\Args::opts($k);
 
@@ -117,7 +117,7 @@ class Command{
 						throw new \InvalidArgumentException('--'.$k.' required');
 					}
 					if(isset($i[2]['init'])){
-						$opts = is_array($i[2]['init']) ? $i[2]['init'] : array($i[2]['init']);
+						$opts = is_array($i[2]['init']) ? $i[2]['init'] : [$i[2]['init']];
 					}
 				}
 				foreach($opts as $v){
@@ -159,8 +159,8 @@ class Command{
 			\cmdman\Std::println(implode(' ',explode(PHP_EOL,PHP_EOL.$exception->getMessage())));
 			\cmdman\Std::println();
 
-			if(!is_callable($error_funcs) && defined('CMDMAN_ERROR_CALLBACK')){
-				$error_funcs = constant('CMDMAN_ERROR_CALLBACK');
+			if(!is_callable($error_funcs) && defined('EBICO_ERROR_CALLBACK')){
+				$error_funcs = constant('EBICO_ERROR_CALLBACK');
 			}
 			if(is_string($error_funcs)){
 				if(strpos($error_funcs,'::') !== false){
@@ -171,13 +171,13 @@ class Command{
 				}
 			}
 			if(is_callable($error_funcs)){
-				call_user_func_array($error_funcs,array($exception));
+				call_user_func_array($error_funcs,[$exception]);
 			}
 		}
 	}
 	private static function get_docuemnt($file){
 		return (preg_match('/\/\*\*.+?\*\//s',file_get_contents($file),$m)) ?
-		trim(preg_replace("/^[\s]*\*[\s]{0,1}/m","",str_replace(array('/'.'**','*'.'/'),'',$m[0]))) :
+		trim(preg_replace("/^[\s]*\*[\s]{0,1}/m","",str_replace(['/'.'**','*'.'/'],'',$m[0]))) :
 		'';
 	}
 	private static function get_summary($file){
@@ -188,15 +188,15 @@ class Command{
 	private static function get_params($command){
 		$doc = self::get_docuemnt(self::get_file($command));
 			
-		$help_params = array();
+		$help_params = [];
 		if(preg_match_all('/@.+/',$doc,$as)){
 			foreach($as[0] as $m){
 				if(preg_match("/@(\w+)\s+([^\s]+)\s+\\$(\w+)(.*)/",$m,$p)){
 					if($p[1] == 'param'){
-						$help_params[$p[3]] = array($p[2],trim($p[4]),array('is_a'=>false,'init'=>null,'require'=>false));
+						$help_params[$p[3]] = [$p[2],trim($p[4]),['is_a'=>false,'init'=>null,'require'=>false]];
 					}
 				}else if(preg_match("/@(\w+)\s+\\$(\w+)(.*)/",$m,$p)){
-					$help_params[$p[2]] = array('string',trim($p[3]),array('is_a'=>false,'init'=>null,'require'=>false));
+					$help_params[$p[2]] = ['string',trim($p[3]),['is_a'=>false,'init'=>null,'require'=>false]];
 				}
 			}
 		}
@@ -215,11 +215,11 @@ class Command{
 					throw new \InvalidArgumentException('$'.$k.': invalid type `'.$v[0].'`');
 			}
 			if(false !== ($p=strpos($v[1],'@['))){
-				$anon = @eval('return '.str_replace(array('[',']'),array('array(',')'),substr($v[1],$p+1,strrpos($v[1],']')-$p).';'));
+				$anon = @eval('return '.str_replace(['[',']'],['array(',')'],substr($v[1],$p+1,strrpos($v[1],']')-$p).';'));
 				if(!is_array($anon)){
 					throw new \InvalidArgumentException('annotation error : `'.$k.'`');
 				}
-				foreach(array('init','require') as $a){
+				foreach(['init','require'] as $a){
 					if(isset($anon[$a])){
 						$help_params[$k][2][$a] = $anon[$a];
 					}
@@ -276,7 +276,7 @@ class Command{
 			if(self::validdir($f->getPathname())){
 				if(is_file($cf=$f->getPathname().'/cmd.php') && !isset($list[$cf])){
 					$class = str_replace('/','.',substr(dirname($cf),strlen($r)+1));
-					$list[$cf] = array($class,self::get_summary($cf));
+					$list[$cf] = [$class,self::get_summary($cf)];
 				}
 				if(is_dir($cd=$f->getPathname().'/cmd/')){
 					foreach(new \DirectoryIterator($cd) as $fi){
@@ -296,10 +296,10 @@ class Command{
 							}else{
 								$class = str_replace('/','.',substr($f->getPathname(),strlen($r)+1));
 							}
-							$list[$fi->getPathname()] = array(
-									$class.'::'.substr($fi->getFilename(),0,-4),
-									self::get_summary($fi->getPathname())
-							);
+							$list[$fi->getPathname()] = [
+								$class.'::'.substr($fi->getFilename(),0,-4),
+								self::get_summary($fi->getPathname())
+							];
 						}
 					}
 				}
@@ -311,7 +311,7 @@ class Command{
 	 * @return string{}
 	 */
 	public static function get_list(){
-		$list = array();
+		$list = [];
 		foreach(self::get_include_path() as $p){
 			if(($r = realpath($p)) !== false){
 				self::find_cmd($list,$r);

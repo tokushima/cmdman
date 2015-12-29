@@ -1,17 +1,7 @@
-cmdman
-=========
-Command Line tool launcher (PHP 5 >= 5.3.0)
+# cmdman
+(PHP 5 >= 5.5.0)
 
-
-#Download
-
-```sh
-$ curl -LO http://git.io/cmdman.phar
-
-or
-
-$ php -r 'readfile("http://git.io/cmdman.phar");' > cmdman.phar
-```
+Console Command
 
 #Run command
 
@@ -74,12 +64,9 @@ project_root/abc/def/Ghi/cmd/foo.php # namespace + Class Name + find php file wi
 
 #Define
 
-	CMDMAN_ERROR_CALLBACK = funcname
+	 EBICON_ERROR_CALLBACK = funcname
 		例外発生時に呼び出される関数
-		exp. define('CMDMAN_ERROR_CALLBACK','\\ebi\\Log::error');
-	CMDMAN_CMD_REPLACE_JSON = json text
-		コマンド検索時に別名で呼び出す為の置文字列の定義   {"search":"replace"}
-		exp. define('CMDMAN_CMD_REPLACE_JSON','{"org.rhaco.":"ebi."}');
+		exp. define('EBICON_ERROR_CALLBACK','\\ebi\\Log::error');
 
 #Methods
 
