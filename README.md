@@ -64,9 +64,9 @@ project_root/abc/def/Ghi/cmd/foo.php # namespace + Class Name + find php file wi
 
 #Define
 
-	 EBICON_ERROR_CALLBACK = funcname
+	 CMDMAN_ERROR_CALLBACK = funcname
 		例外発生時に呼び出される関数
-		exp. define('EBICON_ERROR_CALLBACK','\\ebi\\Log::error');
+		exp. define('CMDMAN_ERROR_CALLBACK','\\ebi\\Log::error');
 
 #Methods
 
