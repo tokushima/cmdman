@@ -81,11 +81,11 @@ class Cmd{
 STAB
 					,$ns);
 
-			if(is_file('bootstrap.php')){
-				$phar->addFile('bootstrap.php','bootstrap.php');
+			if(is_file('autoload.php')){
+				$phar->addFile('autoload.php','autoload.php');
 		
 				$stabstr .= sprintf(PHP_EOL
-						."require_once('phar://%s/bootstrap.php');"
+						."require_once('phar://%s/autoload.php');"
 						,basename($output)
 				);
 			}

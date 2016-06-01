@@ -7,10 +7,11 @@ class Command{
 	 */
 	public static function init(){
 		if(is_file($f=getcwd().'/bootstrap.php') ||
+			is_file($f=getcwd().'/autoload.php') ||
 			is_file($f=getcwd().'/vendor/autoload.php') ||
 			is_file($f=getcwd().'/ebi.phar')
 		){
-			try{				
+			try{
 				ob_start();
 					include_once(realpath($f));
 				ob_end_clean();
@@ -281,18 +282,18 @@ class Command{
 				if(is_dir($cd=$f->getPathname().'/cmd/')){
 					foreach(new \DirectoryIterator($cd) as $fi){
 						if(
-								$fi->isFile() &&
-								strpos($fi->getFilename(),'_') !== 0 &&
-								substr($fi->getFilename(),-4) == '.php' &&
-								!isset($list[$fi->getPathname()] )
+							$fi->isFile() &&
+							strpos($fi->getFilename(),'_') !== 0 &&
+							substr($fi->getFilename(),-4) == '.php' &&
+							!isset($list[$fi->getPathname()] )
 						){
 							if(strpos($f->getPathname(),'phar://') !== false){
 								$class = $realpath.'#'.
-										preg_replace(
-												'/^(src.)/',
-												'',
-												str_replace('/','.',substr($f->getPathname(),strpos($f->getPathname(),'.phar/')+6))
-										);
+									preg_replace(
+											'/^(src.)/',
+											'',
+											str_replace('/','.',substr($f->getPathname(),strpos($f->getPathname(),'.phar/')+6))
+									);
 							}else{
 								$class = str_replace('/','.',substr($f->getPathname(),strlen($r)+1));
 							}
