@@ -39,7 +39,11 @@ class Command{
 				// vendor以外の定義されているパスを探す
 				foreach($loader->getPrefixes() as $ns){
 					foreach($ns as $path){
-						$include_path[$path] = true;
+						$path = realpath($path);
+						
+						if($path !== false){
+							$include_path[$path] = true;
+						}
 					}
 				}
 			}
@@ -59,18 +63,18 @@ class Command{
 	}
 	private static function get_file($command){
 		$protocol = '';
+		
 		if(strpos($command,'#') !== false){
 			list($file,$command) = explode('#',$command,2);
 			$file = realpath($file);
 			$protocol = 'phar://';
-		}
-		
+		}		
 		if(strpos($command,'::') !== false){
 			list($command,$func) = explode('::',$command,2);
-
+			
 			foreach((isset($file) ? [$file] : self::get_include_path()) as $p){
 				if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd/'.$func.'.php')) ||
-						is_file($f=($protocol.$p.'/src/'.str_replace('.','/',$command).'/cmd/'.$func.'.php'))
+					is_file($f=($protocol.$p.'/src/'.str_replace('.','/',$command).'/cmd/'.$func.'.php'))
 				){
 					if(self::validdir(dirname(dirname($f)))){
 						return $f;

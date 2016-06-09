@@ -46,13 +46,17 @@ if(\cmdman\Args::cmd() == null) {
 	
 	$list = \cmdman\Command::get_list();
 	
-	if(! is_file('ebi.phar')) {
+	if(!is_file('ebi.phar') && !class_exists('\ebi\Conf')){
 		$list = array_merge($list,[
-				'ebi.phar'=>['ebi.phar','Download ebi.phar']
+			'ebi.phar'=>['ebi.phar','Download ebi.phar']
 		]);
 	}
-	$list = array_merge($list,[
-		'composer.phar'=>['composer.phar','Download composer.phar'],
+	if(!is_file('composer.phar')){
+		$list = array_merge($list,[
+			'composer.phar'=>['composer.phar','Download composer.phar'],
+		]);		
+	}
+	$list = array_merge($list,[	
 		'archive'=>['archive','Creating Phar Archives'],
 		'extract'=>['extract','Extract the contents of a phar archive to a directory']
 	]);
