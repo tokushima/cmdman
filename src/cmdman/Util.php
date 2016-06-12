@@ -41,4 +41,26 @@ class Util{
 		}
 		return $bool;
 	}
+	
+	/**
+	 * 複数プロセスで処理する
+	 * dataの数だけプロセスをフォークします
+	 * @param callable $callback 処理する関数
+	 * @param array $data 処理対象のデータ
+	 */
+	public static function pctrl(callable $callback,array $data){
+		foreach($data as $param){
+			$pid = pcntl_fork();
+			
+			if($pid === 0){
+				// child process
+				$rtn = call_user_func_array($callback,[$param]);
+				exit;
+			}else{
+				// parent process
+			}
+		}
+		// 子プロセス終了待ち
+		while(pcntl_waitpid(0,$status) !== -1);
+	}
 }
