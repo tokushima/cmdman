@@ -49,12 +49,12 @@ class Util{
 	 * @param array $data 処理対象のデータ
 	 */
 	public static function pctrl(callable $callback,array $data){
-		foreach($data as $param){
+		foreach($data as $key => $param){
 			$pid = pcntl_fork();
 			
 			if($pid === 0){
 				// child process
-				$rtn = call_user_func_array($callback,[$param]);
+				$rtn = call_user_func_array($callback,[$param,$key]);
 				exit;
 			}else{
 				// parent process

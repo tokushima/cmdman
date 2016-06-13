@@ -11,7 +11,7 @@ if(extension_loaded('mbstring')) {
 	}
 	mb_internal_encoding('UTF-8');
 }
-if(isset($_SERVER ['SERVER_PORT'])) {
+if(isset($_SERVER['SERVER_PORT'])) {
 	header('HTTP/1.1 403 Forbidden');
 	print('Forbidden') ;
 	exit();
@@ -22,7 +22,7 @@ if(isset($_SERVER ['SERVER_PORT'])) {
 $version = is_file('version') ? file_get_contents('version') : date('Ymd.His');
 
 $usage = function() use($version) {
-	$php = isset($_ENV ['_']) ? $_ENV ['_'] : 'php';
+	$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
 	
 	\cmdman\Std::println('cmdman '.$version.' (PHP '.phpversion().')');
 	\cmdman\Std::println_info(sprintf('Type \'%s cmdman.phar subcommand --help\' for usage.'.PHP_EOL, basename($php)));
@@ -32,11 +32,11 @@ $show = function($list) {
 	$len = 8;
 	
 	foreach($list as $info){
-		if($len < strlen($info [0]))
-			$len = strlen($info [0]);
+		if($len < strlen($info[0]))
+			$len = strlen($info[0]);
 	}
 	foreach($list as $info){
-		\cmdman\Std::println('  '.str_pad($info [0], $len).' : '.$info [1]);
+		\cmdman\Std::println('  '.str_pad($info[0],$len).' : '.$info[1]);
 	}
 	\cmdman\Std::println();
 };
@@ -109,8 +109,8 @@ if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true) {
 		\cmdman\Command::doc(\cmdman\Args::cmd());
 	}catch(\cmdman\Notfound $e){
 		foreach(\cmdman\Command::get_list() as $cmd){
-			if(\cmdman\Args::cmd() == $cmd [0]) {
-				\cmdman\Std::println('Usage: '.$cmd [1]);
+			if(\cmdman\Args::cmd() == $cmd[0]) {
+				\cmdman\Std::println('Usage: '.$cmd[1]);
 				exit();
 			}
 		}
