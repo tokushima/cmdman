@@ -1,5 +1,5 @@
 # cmdman
-(PHP 5 >= 5.6.0)
+(PHP 5 >= 5.5.0)
 
 Console Command
 
