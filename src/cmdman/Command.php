@@ -8,8 +8,7 @@ class Command{
 	public static function init(){
 		if(is_file($f=getcwd().'/bootstrap.php') ||
 			is_file($f=getcwd().'/autoload.php') ||
-			is_file($f=getcwd().'/vendor/autoload.php') ||
-			is_file($f=getcwd().'/ebi.phar')
+			is_file($f=getcwd().'/vendor/autoload.php')
 		){
 			try{
 				ob_start();
@@ -17,6 +16,14 @@ class Command{
 				ob_end_clean();
 			}catch(\Exception $e){
 			}
+		}
+		if(is_file($f=getcwd().'/ebi.phar')){
+			try{
+				ob_start();
+					include_once(realpath($f));
+				ob_end_clean();
+			}catch(\Exception $e){
+			}			
 		}
 	}
 	private static function get_include_path(){
