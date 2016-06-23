@@ -17,6 +17,7 @@ class Cmd{
 		$ns = '';
 		$mkdir = [];
 		$files = [];
+		$version = date('Ymd.His');
 
 		$srclen = strlen($src);
 		foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator(
@@ -114,7 +115,12 @@ STAB
 STAB
 					,$stabstr));
 			
-			$phar->addFromString('version',date('Ymd.His'));
+			if(is_file('version')){
+				$version = trim(file_get_contents('version'));
+				$phar->addFile('version','version');
+			}else{
+				$phar->addFromString('version',$version);
+			}
 			
 			try{
 				$phar->compressFiles(\Phar::GZ);
@@ -122,7 +128,7 @@ STAB
 			}
 		
 			if(is_file($output)){
-				\cmdman\Std::println_info('Created '.$output.' ['.filesize($output).' byte]');
+				\cmdman\Std::println_info('Created '.$output.' - '.$version.' ['.filesize($output).' byte]');
 			}else{
 				\cmdman\Std::println_danger('Failed '.$output);
 			}
