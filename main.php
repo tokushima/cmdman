@@ -19,7 +19,7 @@ if(isset($_SERVER['SERVER_PORT'])) {
 \cmdman\Args::init();
 \cmdman\Command::init();
 
-$version = is_file('version') ? file_get_contents('version') : date('Ymd.His');
+$version = is_file(__DIR__.'/version') ? file_get_contents(__DIR__.'/version') : '';
 
 $usage = function() use($version) {
 	$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
