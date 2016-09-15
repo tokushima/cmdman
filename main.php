@@ -77,29 +77,34 @@ if(\cmdman\Args::cmd() == null) {
 		$show($list);
 		exit;
 	}else{
-		switch(\cmdman\Args::cmd()) {
-			case 'composer.phar' :
-				eval('?>'.file_get_contents('https://getcomposer.org/installer'));
-				
-				exit;
-			case 'ebi.phar' :
-				file_put_contents('ebi.phar',file_get_contents('http://git.io/ebi.phar'));
-				
-				if(is_file('ebi.phar')){
-					\cmdman\Std::println_success('ebi successfully installed to: '.realpath('ebi.phar'));
-				}				
-				exit;
-			case 'archive' :
-				$args = \cmdman\Args::values();
-				
-				\cmdman\Cmd::phar((isset($args[0]) ? $args[0] : null),(isset($args[1]) ? $args[1] : null));
-				exit();
-			case 'extract' :
-				$args = \cmdman\Args::values();
-				
-				\cmdman\Cmd::unphar((isset($args[0]) ? $args[0] : null),(isset($args[1]) ? $args[1] : null));
-				exit();
-			default:
+		try{
+			switch(\cmdman\Args::cmd()) {
+				case 'composer.phar' :
+					eval('?>'.file_get_contents('https://getcomposer.org/installer'));
+					
+					exit;
+				case 'ebi.phar' :
+					file_put_contents('ebi.phar',file_get_contents('http://git.io/ebi.phar'));
+					
+					if(is_file('ebi.phar')){
+						\cmdman\Std::println_success('ebi successfully installed to: '.realpath('ebi.phar'));
+					}				
+					exit;
+				case 'archive' :
+					$args = \cmdman\Args::values();
+					
+					\cmdman\Cmd::phar((isset($args[0]) ? $args[0] : null),(isset($args[1]) ? $args[1] : null));
+					exit();
+				case 'extract' :
+					$args = \cmdman\Args::values();
+					
+					\cmdman\Cmd::unphar((isset($args[0]) ? $args[0] : null),(isset($args[1]) ? $args[1] : null));
+					exit();
+				default:
+			}
+		}catch(\Exception $e){
+			\cmdman\Std::println_danger(get_class($e).': '.$e->getMessage());
+			exit;
 		}
 	}
 }
