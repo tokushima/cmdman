@@ -1,7 +1,10 @@
 # cmdman
 (PHP 5 >= 5.5.0)
 
-Console Command
+![ebi](computer_kurayami.png)
+
+[![download](button_download2.png)](https://git.io/cmdman.phar)
+
 
 #Run command
 
