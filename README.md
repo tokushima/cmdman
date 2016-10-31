@@ -1,9 +1,9 @@
 # cmdman
 (PHP 5 >= 5.5.0)
 
-![ebi](computer_kurayami.png)
+![ebi](media/computer_kurayami.png)
 
-[![download](button_download2.png)](https://git.io/cmdman.phar)
+[![download](media/button_download2.png)](https://git.io/cmdman.phar)
 
 
 #Run command
