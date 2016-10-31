@@ -43,13 +43,15 @@ class Command{
 				
 			if(is_file($loader_php=$vendor_dir.'/autoload.php')){
 				$loader = include($loader_php);
-				// vendor以外の定義されているパスを探す
-				foreach($loader->getPrefixes() as $ns){
-					foreach($ns as $path){
-						$path = realpath($path);
-						
-						if($path !== false){
-							$include_path[$path] = true;
+				
+				foreach([$loader->getPrefixes(),$loader->getPrefixesPsr4()] as $prefixs){
+					foreach($prefixs as $ns){
+						foreach($ns as $path){
+							$path = realpath($path);
+							
+							if($path !== false){
+								$include_path[$path] = true;
+							}
 						}
 					}
 				}
