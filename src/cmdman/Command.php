@@ -45,11 +45,21 @@ class Command{
 				$loader = include($loader_php);
 				
 				foreach([$loader->getPrefixes(),$loader->getPrefixesPsr4()] as $prefixs){
-					foreach($prefixs as $ns){
-						foreach($ns as $path){
+					foreach($prefixs as $ns => $nspath){
+						$nsp = str_replace('\\','/',$ns);
+						
+						if(substr($nsp,-1) == '/'){
+							$nsp = substr($nsp,0,-1);
+						}
+						foreach($nspath as $path){
 							$path = realpath($path);
-							
+
 							if($path !== false){
+								$path = str_replace('\\','/',$path);
+								
+								if(preg_match('/^(.+)\/'.preg_quote($nsp,'/').'$/',$path,$m)){
+									$path = $m[1];
+								}
 								$include_path[$path] = true;
 							}
 						}
