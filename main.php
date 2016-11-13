@@ -51,11 +51,6 @@ if(\cmdman\Args::cmd() == null) {
 			'ebi.phar'=>['ebi.phar','Download ebi.phar']
 		]);
 	}
-	if(!is_file('composer.phar')){
-		$list = array_merge($list,[
-			'composer.phar'=>['composer.phar','Download composer.phar'],
-		]);		
-	}
 	$list = array_merge($list,[	
 		'archive'=>['archive','Creating Phar Archives'],
 		'extract'=>['extract','Extract the contents of a phar archive to a directory']
@@ -79,10 +74,6 @@ if(\cmdman\Args::cmd() == null) {
 	}else{
 		try{
 			switch(\cmdman\Args::cmd()) {
-				case 'composer.phar' :
-					eval('?>'.file_get_contents('https://getcomposer.org/installer'));
-					
-					exit;
 				case 'ebi.phar' :
 					file_put_contents('ebi.phar',file_get_contents('http://git.io/ebi.phar'));
 					
