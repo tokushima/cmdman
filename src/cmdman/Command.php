@@ -183,20 +183,29 @@ class Command{
 			\cmdman\Std::println(implode(' ',explode(PHP_EOL,PHP_EOL.$exception->getMessage())));
 			\cmdman\Std::println();
 
-			if(!is_callable($error_funcs) && defined('CMDMAN_ERROR_CALLBACK')){
-				$error_funcs = constant('CMDMAN_ERROR_CALLBACK');
-			}
-			if(is_string($error_funcs)){
-				if(strpos($error_funcs,'::') !== false){
-					$error_funcs = explode('::',$error_funcs);
-					if(strpos($error_funcs[0],'.') !== false){
-						$error_funcs[0] = '\\'.str_replace('.','\\',$error_funcs[0]);
-					}
+			self::error_callback($error_funcs, $exception);
+		}catch(\Error $exception){
+			\cmdman\Std::println_danger(PHP_EOL.'Fatal: ');
+			\cmdman\Std::println(implode(' ',explode(PHP_EOL,PHP_EOL.$exception->getMessage())));
+			\cmdman\Std::println();
+			
+			self::error_callback($error_funcs, $exception);
+		}
+	}
+	private static function error_callback($error_funcs,$exception){
+		if(!is_callable($error_funcs) && defined('CMDMAN_ERROR_CALLBACK')){
+			$error_funcs = constant('CMDMAN_ERROR_CALLBACK');
+		}
+		if(is_string($error_funcs)){
+			if(strpos($error_funcs,'::') !== false){
+				$error_funcs = explode('::',$error_funcs);
+				if(strpos($error_funcs[0],'.') !== false){
+					$error_funcs[0] = '\\'.str_replace('.','\\',$error_funcs[0]);
 				}
 			}
-			if(is_callable($error_funcs)){
-				call_user_func_array($error_funcs,[$exception]);
-			}
+		}
+		if(is_callable($error_funcs)){
+			call_user_func_array($error_funcs,[$exception]);
 		}
 	}
 	private static function get_docuemnt($file){
