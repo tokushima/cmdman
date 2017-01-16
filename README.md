@@ -1,7 +1,7 @@
 # cmdman
 (PHP 5 >= 5.5.0)
 
-![ebi](media/computer_kurayami.png)
+[![ebi](media/computer_kurayami.png)](https://git.io/cmdman.phar)
 
 [![download](media/button_download2.png)](https://git.io/cmdman.phar)
 
