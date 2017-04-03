@@ -1,5 +1,5 @@
 # cmdman
-(PHP 5 >= 5.5.0)
+(PHP 7.1)
 
 [![ebi](media/computer_kurayami.png)](https://git.io/cmdman.phar)
 

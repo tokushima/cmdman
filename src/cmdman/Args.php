@@ -6,9 +6,9 @@ class Args{
 	private static $value = [];
 	private static $cmd;
 
-	public static function init(){
+	public static function init($offset=1){
 		$opt = $value = [];
-		$argv = array_slice((isset($_SERVER['argv']) ? $_SERVER['argv'] : []),1);
+		$argv = array_slice((isset($_SERVER['argv']) ? $_SERVER['argv'] : []),$offset);
 			
 		if(!empty($argv) && isset($argv[0]) && substr($argv[0],0,1) != '-'){
 			self::$cmd = array_shift($argv);

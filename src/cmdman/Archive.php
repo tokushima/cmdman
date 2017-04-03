@@ -1,7 +1,7 @@
 <?php
 namespace cmdman;
 
-class Cmd{
+class Archive{
 	/**
 	 * ライブラリをpharにする
 	 * @param string $src ライブラリのルートフォルダ @['require'=>true]
@@ -133,7 +133,7 @@ STAB
 				\cmdman\Std::println_danger('Failed '.$output);
 			}
 		}catch(\UnexpectedValueException $e){
-			\cmdman\Std::println_info($e->getMessage().PHP_EOL.'usage: php -d phar.readonly=0 cmdman.phar archive '.str_replace(getcwd().'/','',$src.' '.$out));
+			\cmdman\Std::println_info($e->getMessage().PHP_EOL.'usage: php -d phar.readonly=0 cmdman.phar cmdman.Util::archive --dir '.str_replace(getcwd().'/','',$src.' '.$out));
 		}catch(\Exception $e){
 			\cmdman\Std::println_danger(get_class($e).': '.$e->getMessage());
 			\cmdman\Std::println_warning($e->getTraceAsString());

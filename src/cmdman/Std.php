@@ -45,7 +45,7 @@ class Std{
 	 * @param string $value
 	 * @param mixed $fmt
 	 */
-	static public function color($value,$fmt=null){
+	public static function color($value,$fmt=null){
 		if(substr(PHP_OS,0,3) == 'WIN'){
 			$value = mb_convert_encoding($value,'UTF-8','SJIS');
 		}else if($fmt !== null){
@@ -58,9 +58,18 @@ class Std{
 	 * バックスペース
 	 * @param integer $len
 	 */
-	static public function backspace($len){
+	public static function backspace($len){
 		print("\033[".$len.'D'."\033[0K");
 	}
+	/**
+	 * プリント
+	 * @param string $msg
+	 * @param string $color ANSI Colors
+	 */
+	public static function p($msg,$color=0){
+		print(self::color($msg,$color));
+	}
+	
 	/**
 	 * 色付きでプリント
 	 * @param string $msg

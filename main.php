@@ -45,18 +45,8 @@ if(\cmdman\Args::cmd() == null) {
 	$usage();
 	
 	$list = \cmdman\Command::get_list();
-	
-	if(!is_file('ebi.phar') && !class_exists('\ebi\Conf')){
-		$list = array_merge($list,[
-			'ebi.phar'=>['ebi.phar','Download ebi.phar']
-		]);
-	}
-	$list = array_merge($list,[	
-		'archive'=>['archive','Creating Phar Archives'],
-		'extract'=>['extract','Extract the contents of a phar archive to a directory']
-	]);
 	$show($list);
-	exit();
+	exit;
 }else{
 	if(is_file(\cmdman\Args::cmd())) { // find phar file
 		$list = [];
@@ -71,54 +61,18 @@ if(\cmdman\Args::cmd() == null) {
 		\cmdman\Command::find_cmd($list, new \Phar(realpath(\cmdman\Args::cmd())), \cmdman\Args::cmd());
 		$show($list);
 		exit;
-	}else{
-		try{
-			switch(\cmdman\Args::cmd()) {
-				case 'ebi.phar' :
-					file_put_contents('ebi.phar',file_get_contents('http://git.io/ebi.phar'));
-					
-					if(is_file('ebi.phar')){
-						\cmdman\Std::println_success('ebi successfully installed to: '.realpath('ebi.phar'));
-					}				
-					exit;
-				case 'archive' :
-					$args = \cmdman\Args::values();
-					
-					\cmdman\Cmd::phar((isset($args[0]) ? $args[0] : null),(isset($args[1]) ? $args[1] : null));
-					exit();
-				case 'extract' :
-					$args = \cmdman\Args::values();
-					
-					\cmdman\Cmd::unphar((isset($args[0]) ? $args[0] : null),(isset($args[1]) ? $args[1] : null));
-					exit();
-				default:
-			}
-		}catch(\Exception $e){
-			\cmdman\Std::println_danger(get_class($e).': '.$e->getMessage());
-			exit;
-		}
 	}
 }
 
 if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true) {
-	try {
-		\cmdman\Command::doc(\cmdman\Args::cmd());
+	\cmdman\Command::doc(\cmdman\Args::cmd());
+}else{
+	try{
+		\cmdman\Command::exec(\cmdman\Args::cmd(), \cmdman\Args::opt('error-callback'));
 	}catch(\cmdman\Notfound $e){
-		foreach(\cmdman\Command::get_list() as $cmd){
-			if(\cmdman\Args::cmd() == $cmd[0]) {
-				\cmdman\Std::println('Usage: '.$cmd[1]);
-				exit();
-			}
-		}
-		throw $e;
+		$usage();
+		\cmdman\Std::println_danger(\cmdman\Args::cmd().': subcommand not found');
+		\cmdman\Util::exit_error();
 	}
-	exit();
-}
-
-try {
-	\cmdman\Command::exec(\cmdman\Args::cmd(), \cmdman\Args::opt('error-callback'));
-}catch(\cmdman\Notfound $e){
-	$usage();
-	\cmdman\Std::println_danger(\cmdman\Args::cmd().': subcommand not found');
 }
 

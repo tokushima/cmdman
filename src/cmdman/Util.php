@@ -5,6 +5,17 @@ namespace cmdman;
  */
 class Util{
 	/**
+	 * ファイルから取得する
+	 * @param string $filename ファイルパス
+	 * @return string
+	 */
+	public static function file_read($filename){
+		if(!is_readable($filename) || !is_file($filename)){
+			throw new \InvalidArgumentException(sprintf('permission denied `%s`',$filename));
+		}
+		return file_get_contents($filename);
+	}
+	/**
 	 * ファイルに書き出す
 	 * @param string $filename ファイルパス
 	 * @param string $src 内容
@@ -13,7 +24,10 @@ class Util{
 		if(empty($filename)) throw new \InvalidArgumentException(sprintf('permission denied `%s`',$filename));
 		$b = is_file($filename);
 		self::mkdir(dirname($filename));
-		if(false === file_put_contents($filename,(string)$src,($lock ? LOCK_EX : 0))) throw new \InvalidArgumentException(sprintf('permission denied `%s`',$filename));
+		
+		if(false === file_put_contents($filename,(string)$src,($lock ? LOCK_EX : 0))){
+			throw new \InvalidArgumentException(sprintf('permission denied `%s`',$filename));
+		}
 		if(!$b) chmod($filename,0777);
 	}
 	/**
@@ -62,5 +76,18 @@ class Util{
 		}
 		// 子プロセス終了待ち
 		while(pcntl_waitpid(0,$status) !== -1);
+	}
+	
+	/**
+	 * エラーとして終了する
+	 */
+	public static function exit_error(){
+		exit(1);
+	}
+	/**
+	 * 一時停止として終了する
+	 */
+	public static function exit_wait(){
+		exit(19);
 	}
 }

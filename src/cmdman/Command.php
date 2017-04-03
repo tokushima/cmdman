@@ -351,6 +351,13 @@ class Command{
 			}
 		}
 		ksort($list);
-		return $list;
+		
+		$cmdlist = [];
+		self::find_cmd($cmdlist,dirname(__DIR__));
+		
+		foreach($cmdlist as $k => $v){
+			$cmdlist[$k][0] = str_replace('#','',$cmdlist[$k][0]);
+		}
+		return array_merge($list,$cmdlist);
 	}
 }
