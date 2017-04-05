@@ -6,6 +6,7 @@
  * @param integer $wt Waiting time
  * @param integer $ws Waiting status number
  * @param string $out Path to output the last result
+ * @param boolean $force Forced execution
  */
 $php = $_SERVER['_'];
 $self = $_SERVER['PHP_SELF'];
@@ -69,7 +70,9 @@ while(true){
 		if($return_var === $wait_status){
 			sleep($wait_time);
 		}else{
-			break;
+			if(!$force){
+				break;
+			}
 		}
 	}
 }
