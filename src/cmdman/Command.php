@@ -67,6 +67,8 @@ class Command{
 				}
 			}
 		}
+		$include_path[dirname(__DIR__)] = true;
+		
 		krsort($include_path);
 		return array_keys($include_path);
 	}

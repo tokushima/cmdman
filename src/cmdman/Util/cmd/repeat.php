@@ -15,6 +15,18 @@ $pid = \cmdman\Args::opt('pid');
 $wait_status = empty($ws) ? 19 : $ws;
 $wait_time = empty($wt) ? 60 : $wt;
 
+$pstatus_func = function($pid,$st=null,$rt=null){
+	if(!empty($st)){
+		\cmdman\Util::file_write($pid,$st.','.date('Y-m-d H:i:s').','.$rt.PHP_EOL);
+		return $st;
+	}
+	try{
+		$status = explode(',',trim(\cmdman\Util::file_read($pid)));
+	}catch(\InvalidArgumentException $e){
+		return 'NONE';
+	}
+	return $status[0];
+};
 if(!empty($out)){
 	if($out != 'stdout'){
 		\cmdman\Util::file_write($out,'');
@@ -31,18 +43,7 @@ if(!empty($pid)){
 		$pid = realpath($pid);
 	}
 }
-$pstatus_func = function($pid,$st=null,$rt=null){
-	if(!empty($st)){
-		\cmdman\Util::file_write($pid,$st.','.date('Y-m-d H:i:s').','.$rt.PHP_EOL);
-		return $st;
-	}
-	try{
-		$status = explode(',',trim(\cmdman\Util::file_read($pid)));
-	}catch(\InvalidArgumentException $e){
-		return 'NONE';
-	}
-	return $status[0];
-};
+
 while(true){
 	ob_start();
 		system($command,$return_var);
