@@ -43,6 +43,11 @@ if(!empty($pid)){
 		$pstatus_func($pid,'Called');
 		$pid = realpath($pid);
 	}
+	register_shutdown_function(function($pid){
+		if(file_exists($pid)){
+			unlink($pid);
+		}
+	},$pid);
 }
 
 while(true){
@@ -52,9 +57,9 @@ while(true){
 
 	if(!empty($out)){
 		if($out == 'stdout'){
-			print($rtn.PHP_EOL);
+			print($rtn);
 		}else{
-			\cmdman\Util::file_write($out,$rtn.PHP_EOL);
+			\cmdman\Util::file_write($out,$rtn);
 		}
 	}
 	if(!empty($pid)){
