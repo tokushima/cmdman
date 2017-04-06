@@ -70,7 +70,9 @@ while(true){
 		if($return_var === $wait_status){
 			sleep($wait_time);
 		}else{
-			if(!$force){
+			if($force){
+				sleep($wait_time);
+			}else{
 				break;
 			}
 		}
