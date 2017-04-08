@@ -11,14 +11,20 @@
 $php = $_SERVER['_'];
 $self = $_SERVER['PHP_SELF'];
 $command = $php.' '.$self.' '.$cmd;
-
-$pid = \cmdman\Args::opt('pid');
 $wait_status = empty($ws) ? 19 : $ws;
 $wait_time = empty($wt) ? 60 : $wt;
+$pcntl = extension_loaded('pcntl');
+$posix = extension_loaded('posix');
 
-$pstatus_func = function($pid,$st=null,$rt=null){
+if(!empty($out)){
+	if($out != 'stdout'){
+		\cmdman\Util::file_write($out,'');
+		$out = realpath($out);
+	}
+}
+$pstatus_func = function($pid,$st=null,$rt=null) use($posix){
 	if(!empty($st)){
-		\cmdman\Util::file_write($pid,$st.','.date('Y-m-d H:i:s').','.$rt.PHP_EOL);
+		\cmdman\Util::file_write($pid,$st.(($posix) ? ','.posix_getpid() : '').','.date('Y-m-d H:i:s').','.$rt.PHP_EOL);
 		return $st;
 	}
 	try{
@@ -28,28 +34,27 @@ $pstatus_func = function($pid,$st=null,$rt=null){
 	}
 	return $status[0];
 };
-if(!empty($out)){
-	if($out != 'stdout'){
-		\cmdman\Util::file_write($out,'');
-		$out = realpath($out);
-	}
-}
 if(!empty($pid)){
 	$pid = (substr($pid,-4) == '.pid') ? $pid : $pid.'.pid';
-
+	
 	if(file_exists($pid)){
 		throw new \RuntimeException('Already running');
 	}else{
 		$pstatus_func($pid,'Called');
 		$pid = realpath($pid);
 	}
-	register_shutdown_function(function($pid){
+	$shutdown_func = function() use($pid){
 		if(file_exists($pid)){
 			unlink($pid);
 		}
-	},$pid);
+		exit;
+	};
+	if($pcntl){
+		pcntl_signal(SIGINT,$shutdown_func);
+		pcntl_signal(SIGTERM,$shutdown_func);
+	}
+	register_shutdown_function($shutdown_func);
 }
-
 while(true){
 	ob_start();
 		system($command,$return_var);
@@ -62,24 +67,18 @@ while(true){
 			\cmdman\Util::file_write($out,$rtn);
 		}
 	}
-	if(!empty($pid)){
-		clearstatcache();
-			
-		if($pstatus_func($pid) == 'Stop'){
-			unlink($pid);
-			break;
-		}
-		$pstatus_func($pid,'Called',$return_var);
-	}
 	if($return_var !== 0){
-		if($return_var === $wait_status){
-			sleep($wait_time);
-		}else{
-			if($force){
-				sleep($wait_time);
-			}else{
-				break;
-			}
+		if($return_var !== $wait_status && !$force){
+			exit;
 		}
+		for($i=0;$i<$wait_time;$i++){
+			if($pcntl){
+				pcntl_signal_dispatch();
+			}
+			sleep(1);
+		}
+	}
+	if($pcntl){
+		pcntl_signal_dispatch();
 	}
 }
