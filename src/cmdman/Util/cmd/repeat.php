@@ -6,9 +6,18 @@
  * @param integer $wt Waiting time
  * @param integer $ws Waiting status number
  * @param string $out Path to output the last result
+ * @param string $php PHP binary path 
  * @param boolean $force Forced execution
  */
-$php = $_SERVER['_'];
+$php = empty($php) ? 'php' : $php;
+ob_start();
+	system($php.' -v');
+$chk = ob_get_clean();
+
+if(substr($chk,0,3) !== 'PHP'){
+	\cmdman\Std::println_danger($php.' not a PHP');
+	exit;
+}
 $self = $_SERVER['PHP_SELF'];
 $command = $php.' '.$self.' '.$cmd;
 $wait_status = empty($ws) ? 19 : $ws;
@@ -19,7 +28,7 @@ $pid = (empty($pid) || substr($pid,-4) == '.pid') ? $pid : $pid.'.pid';
 
 if(!empty($out)){
 	if($out != 'stdout'){
-		\cmdman\Util::file_write($out,'');
+		\cmdman\Util::file_append($out,'');
 		$out = realpath($out);
 	}
 }
@@ -31,7 +40,8 @@ $shutdown_func = function() use($pid){
 };
 if(!empty($pid)){
 	if(file_exists($pid)){
-		throw new \RuntimeException('Already running');
+		\cmdman\Std::println_warning('Already running');
+		exit;
 	}else{
 		\cmdman\Util::file_write(
 			$pid,
@@ -57,7 +67,7 @@ while(true){
 		if($out == 'stdout'){
 			print($rtn);
 		}else{
-			\cmdman\Util::file_write($out,$rtn);
+			\cmdman\Util::file_append($out,$rtn);
 		}
 	}	
 	if(!empty($pid)){
@@ -72,7 +82,8 @@ while(true){
 		}else{
 			\cmdman\Util::file_write(
 				$pid,
-				sprintf('Called,%s,%s'.PHP_EOL,
+				sprintf('%s,%s,%s'.PHP_EOL,
+					(($return_var === 0) ? 'Call' : 'Wait'),
 					date('Y-m-d H:i:s'),
 					(($ext_posix) ? posix_getpid() : '')
 				)

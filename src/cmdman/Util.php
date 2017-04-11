@@ -31,6 +31,21 @@ class Util{
 		if(!$b) chmod($filename,0777);
 	}
 	/**
+	 * ファイルに追記する
+	 * @param string $filename ファイルパス
+	 * @param string $src 内容
+	 */
+	public static function file_append($filename,$src=null,$lock=true){
+		if(empty($filename)) throw new \InvalidArgumentException(sprintf('permission denied `%s`',$filename));
+		$b = is_file($filename);
+		self::mkdir(dirname($filename));
+	
+		if(false === file_put_contents($filename,(string)$src,FILE_APPEND|($lock ? LOCK_EX : 0))){
+			throw new \InvalidArgumentException(sprintf('permission denied `%s`',$filename));
+		}
+		if(!$b) chmod($filename,0777);
+	}
+	/**
 	 * フォルダを作成する
 	 * @param string $source 作成するフォルダパス
 	 * @param oct $permission
