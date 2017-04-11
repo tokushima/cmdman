@@ -2,10 +2,8 @@
 /**
  * Repeat command execution
  * @param string $cmd Command to repeat　@['require'=>true]
- * @param string $pid PID file path
- * @param integer $wt Waiting time
- * @param integer $ws Waiting status number
- * @param string $out Path to output the last result
+ * @param string $daemon PID file path
+ * @param string $log Path to output the last result
  * @param string $php PHP binary path 
  * @param boolean $force Forced execution
  */
@@ -20,16 +18,15 @@ if(substr($chk,0,3) !== 'PHP'){
 }
 $self = $_SERVER['PHP_SELF'];
 $command = $php.' '.$self.' '.$cmd;
-$wait_status = empty($ws) ? 19 : $ws;
-$wait_time = empty($wt) ? 60 : $wt;
+$pid = (empty($daemon) || substr($daemon,-4) == '.pid') ? $daemon : $daemon.'.pid';
 $ext_pcntl = extension_loaded('pcntl');
-$ext_posix = extension_loaded('posix');
-$pid = (empty($pid) || substr($pid,-4) == '.pid') ? $pid : $pid.'.pid';
+$wait_status = 19;
+$wait_time = 60;
 
-if(!empty($out)){
-	if($out != 'stdout'){
-		\cmdman\Util::file_append($out,'');
-		$out = realpath($out);
+if(!empty($log)){
+	if($log != 'stdout'){
+		\cmdman\Util::file_append($log,'');
+		$log = realpath($log);
 	}
 }
 $shutdown_func = function() use($pid){
@@ -43,13 +40,8 @@ if(!empty($pid)){
 		\cmdman\Std::println_warning('Already running');
 		exit;
 	}else{
-		\cmdman\Util::file_write(
-			$pid,
-			sprintf('Start,%s,%s'.PHP_EOL,
-				date('Y-m-d H:i:s'),
-				(($ext_posix) ? posix_getpid() : '')
-			)
-		);
+		$value = (extension_loaded('posix') ? posix_getpid() : '').','.$cmd;
+		\cmdman\Util::file_write($pid,$value);
 		$pid = realpath($pid);
 	}
 	if($ext_pcntl){
@@ -63,32 +55,15 @@ while(true){
 		system($command,$return_var);
 	$rtn = ob_get_clean();
 
-	if(!empty($out)){
-		if($out == 'stdout'){
+	if(!empty($log)){
+		if($log == 'stdout'){
 			print($rtn);
 		}else{
-			\cmdman\Util::file_append($out,$rtn);
+			\cmdman\Util::file_append($log,$rtn);
 		}
 	}	
-	if(!empty($pid)){
-		try{
-			clearstatcache();
-			list($st) = explode(',',trim(\cmdman\Util::file_read($pid)));
-		}catch(\InvalidArgumentException $e){
-			$st = 'Stop';
-		}
-		if($st === 'Stop'){
-			$shutdown_func();
-		}else{
-			\cmdman\Util::file_write(
-				$pid,
-				sprintf('%s,%s,%s'.PHP_EOL,
-					(($return_var === 0) ? 'Call' : 'Wait'),
-					date('Y-m-d H:i:s'),
-					(($ext_posix) ? posix_getpid() : '')
-				)
-			);
-		}
+	if(!empty($pid) && !file_exists($pid)){
+		$shutdown_func();
 	}
 	if($return_var !== 0){
 		if($return_var !== $wait_status && !$force){
