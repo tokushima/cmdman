@@ -209,6 +209,7 @@ class Command{
 		if(is_callable($error_funcs)){
 			call_user_func_array($error_funcs,[$exception]);
 		}
+		\cmdman\Util::exit_error();
 	}
 	private static function get_docuemnt($file){
 		return (preg_match('/\/\*\*.+?\*\//s',file_get_contents($file),$m)) ?

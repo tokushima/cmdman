@@ -6,7 +6,7 @@
  * @param string $log Path to output the last result
  * @param string $php PHP binary path 
  * @param boolean $force Forced execution
- * @param integer $wt Waiting time
+ * @param integer $wt Waiting time (sec)
  */
 $php = empty($php) ? 'php' : $php;
 ob_start();
@@ -27,7 +27,6 @@ $wait_time = empty($wt) ? 60 : $wt;
 if(!empty($log)){
 	if($log != 'stdout'){
 		\cmdman\Util::file_append($log,'');
-		$log = realpath($log);
 	}
 }
 $shutdown_func = function() use($pid){
@@ -41,9 +40,7 @@ if(!empty($pid)){
 		\cmdman\Std::println_warning('Already running');
 		exit;
 	}else{
-		$value = (extension_loaded('posix') ? posix_getpid() : '').','.$cmd;
-		\cmdman\Util::file_write($pid,$value);
-		$pid = realpath($pid);
+		\cmdman\Util::file_write($pid,(extension_loaded('posix') ? posix_getpid() : '').','.$cmd);
 	}
 	if($ext_pcntl){
 		pcntl_signal(SIGINT,$shutdown_func);
