@@ -6,6 +6,7 @@
  * @param string $log Path to output the last result
  * @param string $php PHP binary path 
  * @param boolean $force Forced execution
+ * @param integer $wt Waiting time
  */
 $php = empty($php) ? 'php' : $php;
 ob_start();
@@ -21,7 +22,7 @@ $command = $php.' '.$self.' '.$cmd;
 $pid = (empty($daemon) || substr($daemon,-4) == '.pid') ? $daemon : $daemon.'.pid';
 $ext_pcntl = extension_loaded('pcntl');
 $wait_status = 19;
-$wait_time = 60;
+$wait_time = empty($wt) ? 60 : $wt;
 
 if(!empty($log)){
 	if($log != 'stdout'){

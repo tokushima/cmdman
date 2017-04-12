@@ -28,7 +28,7 @@ class Util{
 		if(false === file_put_contents($filename,(string)$src,($lock ? LOCK_EX : 0))){
 			throw new \InvalidArgumentException(sprintf('permission denied `%s`',$filename));
 		}
-		if(!$b) chmod($filename,0777);
+		if(!$b) chmod($filename,0666);
 	}
 	/**
 	 * ファイルに追記する
@@ -43,14 +43,14 @@ class Util{
 		if(false === file_put_contents($filename,(string)$src,FILE_APPEND|($lock ? LOCK_EX : 0))){
 			throw new \InvalidArgumentException(sprintf('permission denied `%s`',$filename));
 		}
-		if(!$b) chmod($filename,0777);
+		if(!$b) chmod($filename,0666);
 	}
 	/**
 	 * フォルダを作成する
 	 * @param string $source 作成するフォルダパス
 	 * @param oct $permission
 	 */
-	public static function mkdir($source,$permission=0775){
+	public static function mkdir($source,$permission=0755){
 		$bool = true;
 		if(!is_dir($source)){
 			try{
