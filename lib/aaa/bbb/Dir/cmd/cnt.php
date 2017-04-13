@@ -14,6 +14,6 @@ file_put_contents($file,$no);
 sleep(1);
 
 if(rand(1,10) == 2){
-	\cmdman\Std::println_info('Wait');
+	\cmdman\Std::println_info('Wait '.date('Y-m-d H:i:s'));
 	\cmdman\Util::exit_wait();
 }

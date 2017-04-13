@@ -63,18 +63,25 @@ while(true){
 	if(!empty($pid) && !file_exists($pid)){
 		$shutdown_func();
 	}
+	if($ext_pcntl){
+		pcntl_signal_dispatch();
+	}
 	if($return_var !== 0){
 		if($return_var !== $wait_status && !$force){
 			exit;
 		}
-		for($i=0;$i<$wait_time;$i++){
+		for($i=0,$y=0;$i<$wait_time;$i++,$y++){
 			if($ext_pcntl){
 				pcntl_signal_dispatch();
 			}
 			sleep(1);
+			
+			if($y == 60){
+				if(!empty($pid) && !file_exists($pid)){
+					$shutdown_func();
+				}
+				$y = 0;
+			}
 		}
-	}
-	if($ext_pcntl){
-		pcntl_signal_dispatch();
 	}
 }
