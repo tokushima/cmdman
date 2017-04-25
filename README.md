@@ -1,11 +1,6 @@
 # cmdman
 (PHP 7.1)
 
-[![ebi](media/computer_kurayami.png)](https://git.io/cmdman.phar)
-
-[![download](media/button_download2.png)](https://git.io/cmdman.phar)
-
-
 #Run command
 
 example) execute `abc.def.Ghi` command.
