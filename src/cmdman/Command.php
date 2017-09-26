@@ -122,63 +122,74 @@ class Command{
 	 * @throws \InvalidArgumentException
 	 */
 	public static function exec($command,$error_funcs=null){
-		$_execute_file = self::get_file($command);
+		$_execute_file_519904 = self::get_file($command);
+		
 		try{
-			if(strpos($_execute_file,'phar://') === 0){
-				include_once(preg_replace('/^phar:\/\/(.+\.phar)\/.+$/','\\1',$_execute_file));
+			if(strpos($_execute_file_519904,'phar://') === 0){
+				include_once(preg_replace('/^phar:\/\/(.+\.phar)\/.+$/','\\1',$_execute_file_519904));
 			}
-			if(is_file($f=dirname($_execute_file).'/__setup__.php')){
+			if(is_file($f=dirname($_execute_file_519904).'/__setup__.php')){
 				include($f);
 			}
-			$arg = \cmdman\Args::value();
-			$args = \cmdman\Args::values();
+			
+			foreach(self::get_params($command) as $_k_679243 => $_i_526477){
+				$_value_824432 = [];
+				$_emsg_407635 = new \InvalidArgumentException('$'.$_k_679243.' must be an `'.$_i_526477[0].'`');
+				$_opts_944947 = \cmdman\Args::opts($_k_679243);
 
-			foreach(self::get_params($command) as $k => $i){
-				$value = [];
-				$emsg = new \InvalidArgumentException('$'.$k.' must be an `'.$i[0].'`');
-				$opts = \cmdman\Args::opts($k);
-
-				if(empty($opts)){
-					if($i[2]['require']){
-						throw new \InvalidArgumentException('--'.$k.' required');
+				if(empty($_opts_944947)){
+					if($_i_526477[2]['require']){
+						throw new \InvalidArgumentException('--'.$_k_679243.' required');
 					}
-					if(isset($i[2]['init'])){
-						$opts = is_array($i[2]['init']) ? $i[2]['init'] : [$i[2]['init']];
+					if(isset($_i_526477[2]['init'])){
+						$_opts_944947 = is_array($_i_526477[2]['init']) ? $_i_526477[2]['init'] : [$_i_526477[2]['init']];
 					}
 				}
-				foreach($opts as $v){
-					switch($i[2]['is_a'] ? substr($i[0],0,-2) : $i[0]){
+				foreach($_opts_944947 as $_v_795509){
+					switch($_i_526477[2]['is_a'] ? substr($_i_526477[0],0,-2) : $_i_526477[0]){
 						case 'string':
-							if(!is_string($v)) throw $emsg;
+							if(!is_string($_v_795509)){
+							    throw $_emsg_407635;
+							}
 							break;
 						case 'integer':
-							if(!is_numeric($v) || !ctype_digit((string)$v)) throw $emsg;
-							$v = (int)$v;
+							if(!is_numeric($_v_795509) || !ctype_digit((string)$_v_795509)){
+							    throw $_emsg_407635;
+							}
+							$_v_795509 = (int)$_v_795509;
 							break;
 						case 'float':
-							if(!is_numeric($v)) throw $emsg;
-							$v = (float)$v;
+							if(!is_numeric($_v_795509)){
+							    throw $_emsg_407635;
+							}
+							$_v_795509 = (float)$_v_795509;
 							break;
 						case 'boolean':
-							if(is_string($v)){
-								if($v === 'true') $v = true;
-								if($v === 'false') $v = false;
+							if(is_string($_v_795509)){
+								if($_v_795509 === 'true'){
+								    $_v_795509 = true;
+								}
+								if($_v_795509 === 'false'){
+								    $_v_795509 = false;
+								}
 							}
-							if(!is_bool($v)) throw $emsg;
-							$v = (boolean)$v;
+							if(!is_bool($_v_795509)){
+							    throw $_emsg_407635;
+							}
+							$_v_795509 = (boolean)$_v_795509;
 							break;
 					}
-					$value[] = $v;
+					$_value_824432[] = $_v_795509;
 				}
-				$$k = ($i[2]['is_a'] ? $value : (empty($value) ? null : $value[0]));
+				$$_k_679243 = ($_i_526477[2]['is_a'] ? $_value_824432 : (empty($_value_824432) ? null : $_value_824432[0]));
 			}
-			include($_execute_file);
+			include($_execute_file_519904);
 
-			if(is_file($f=dirname($_execute_file).'/__teardown__.php')){
+			if(is_file($f=dirname($_execute_file_519904).'/__teardown__.php')){
 				include($f);
 			}
 		}catch(\Exception $exception){
-			if(is_file($_execute_file) && is_file($f=dirname($_execute_file).'/__exception__.php')){
+			if(is_file($_execute_file_519904) && is_file($f=dirname($_execute_file_519904).'/__exception__.php')){
 				include($f);
 			}
 			\cmdman\Std::println_danger(PHP_EOL.'Exception: ('.get_class($exception).')');
