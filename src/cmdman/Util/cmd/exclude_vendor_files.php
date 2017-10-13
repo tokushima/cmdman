@@ -17,7 +17,16 @@ $dir = realpath($dir);
 if(!is_dir($dir)){
 	throw new \cmdman\AccessDeniedException();
 }
+
+
+if($json && ($f = (getcwd().'/composer.json')) && is_file($f)){
+	$vars = json_decode(file_get_contents($f),true);
 	
+	if(array_key_exists('ex-vendor-exclude',$vars)){
+		$json_pattern[$f] = $vars['ex-vendor-exclude'];
+	}
+}
+
 $target = [];
 foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir,\FilesystemIterator::CURRENT_AS_FILEINFO|\FilesystemIterator::UNIX_PATHS)) as $f){
 	if($f->isDir()){
