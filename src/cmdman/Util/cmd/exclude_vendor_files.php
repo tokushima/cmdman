@@ -3,9 +3,14 @@
  * Exclude vendor files
  * @param string $dir Target vendor folder @['require'=>true]
  * @param boolean $json Check composer.json @['init'=>true]
+ * @param boolean $git Exclude .git
  */
-$exclude_pattern = ['tests','test','examples','example','.git'];
+$exclude_pattern = ['tests','test','examples','example'];
 $json_pattern = [];
+
+if($git){
+	$exclude_pattern[] = '.git';
+}
 
 $dir = realpath($dir);
 
