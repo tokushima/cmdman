@@ -17,14 +17,6 @@ class Command{
 			}catch(\Exception $e){
 			}
 		}
-		if(is_file($f=getcwd().'/ebi.phar')){
-			try{
-				ob_start();
-					include_once(realpath($f));
-				ob_end_clean();
-			}catch(\Exception $e){
-			}			
-		}
 	}
 	private static function get_include_path(){
 		$include_path = [];
