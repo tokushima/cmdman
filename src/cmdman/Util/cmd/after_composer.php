@@ -58,6 +58,15 @@ $parse = function($vars) use(&$exclude_json_pattern,&$copy_json_pattern,&$dummy_
 				}
 			}
 		}
+		if(array_key_exists('dummy-trait',$vars['after'])){
+			foreach($vars['after']['dummy-trait'] as $classname){
+				if(!is_string($classname)){
+					throw new \cmdman\InvalidJsonException('Invalid JSON: dummy');
+				}else{
+					$dummy_json_pattern[$classname] = 3;
+				}
+			}
+		}
 	}
 };
 
@@ -152,9 +161,16 @@ if(!empty($dummy_json_pattern)){
 			$src = '<?php'.PHP_EOL;
 			
 			if($namespae != '.'){
-				$src .= 'namsespace '.$namespae.';'.PHP_EOL;
+				$src .= 'namespace '.$namespae.';'.PHP_EOL;
 			}
-			$src .= (($type == 1) ? 'class' : 'interface').' '.$classname.'{'.PHP_EOL.'}';
+			if($type == 1){
+				$src .= 'class';
+			}else if($type == 2){
+				$src .= 'interface';
+			}else if($type == 3){
+				$src .= 'trait';
+			}
+			$src .= ' '.$classname.'{'.PHP_EOL.'}';
 			
 			\cmdman\Std::println('    '.$filename);
 			\cmdman\Util::file_write($filename,$src);
