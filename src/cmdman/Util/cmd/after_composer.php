@@ -49,6 +49,15 @@ $parse = function($vars) use(&$exclude_json_pattern,&$copy_json_pattern,&$dummy_
 				}
 			}
 		}
+		if(array_key_exists('dummy-class',$vars['after'])){
+			foreach($vars['after']['dummy-class'] as $classname){
+				if(!is_string($classname)){
+					throw new \cmdman\InvalidJsonException('Invalid JSON: dummy');
+				}else{
+					$dummy_json_pattern[$classname] = 1;
+				}
+			}
+		}
 		if(array_key_exists('dummy-interface',$vars['after'])){
 			foreach($vars['after']['dummy-interface'] as $classname){
 				if(!is_string($classname)){
@@ -137,7 +146,11 @@ if(!empty($copy_json_pattern)){
 			if(is_dir($dest)){
 				$dest = cmdman\Util::path_absolute($dest,basename($source));
 			}
-			\cmdman\Std::println('    '.$dest);
+			if(file_exists($dest)){
+				\cmdman\Std::println_warning('    '.$dest.' (overwrite)');
+			}else{
+				\cmdman\Std::println('    '.$dest);
+			}
 			\cmdman\Util::copy($source, $dest);
 		}else{
 			throw new \cmdman\AccessDeniedException($source);
@@ -157,7 +170,9 @@ if(!empty($dummy_json_pattern)){
 		
 		$filename = \cmdman\Util::path_absolute(\cmdman\Util::path_slash($dir,null,true).'/_dummy',$filename).'.php';
 		
-		if(!is_file($filename)){
+		if(file_exists($filename)){
+			\cmdman\Std::println_white('    '.$filename.' (exists)');
+		}else{
 			$src = '<?php'.PHP_EOL;
 			
 			if($namespae != '.'){
