@@ -113,7 +113,7 @@ if(!empty($exclude_target)){
 	
 	foreach($exclude_target as $path){
 		if(is_dir($path)){
-			\cmdman\Std::println_primary('  '.$path);
+			\cmdman\Std::println('  '.$path);
 			\cmdman\Util::rm($path);
 		}
 	}
@@ -124,19 +124,17 @@ if(!empty($exclude_target)){
 if(!empty($exclude_json_pattern)){
 	\cmdman\Std::println_info('Exclude'.PHP_EOL);
 	
-	foreach($exclude_json_pattern as $cond => $paths){
-		\cmdman\Std::println_warning('  '.$cond);
+	foreach($exclude_json_pattern as $path){
+		$path = \cmdman\Util::path_absolute($dir,\cmdman\Util::path_slash($path,false));
 		
-		foreach($paths as $p){
-			$p = \cmdman\Util::path_absolute($dir,\cmdman\Util::path_slash($p,false));
-			
-			if(is_dir($p)){
-				\cmdman\Std::println_primary('    '.$p);
-				\cmdman\Util::rm($p);
-			}else if(is_file($p)){
-				\cmdman\Std::println('    '.$p);
-				\cmdman\Util::rm($p);
-			}
+		if(is_dir($path)){
+			\cmdman\Std::println_primary('    '.$path);
+			\cmdman\Util::rm($path);
+		}else if(is_file($path)){
+			\cmdman\Std::println('    '.$path);
+			\cmdman\Util::rm($path);
+		}else{
+			\cmdman\Std::println_white('    '.$path.' (not found)');
 		}
 	}
 	\cmdman\Std::println();
