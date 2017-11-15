@@ -20,14 +20,14 @@ if(!is_dir($dir)){
 	throw new \cmdman\AccessDeniedException();
 }
 
-$parse = function($vars) use(&$exclude_json_pattern,&$copy_json_pattern,&$dummy_json_pattern){
+$parse = function($vars,$cwd) use(&$exclude_json_pattern,&$copy_json_pattern,&$dummy_json_pattern){
 	if(array_key_exists('after',$vars)){
 		if(array_key_exists('exclude',$vars['after'])){
 			foreach($vars['after']['exclude'] as $path){
 				if(!is_string($path)){
 					throw new \cmdman\InvalidJsonException('Invalid JSON: exclude');
 				}else{
-					$exclude_json_pattern[] = $path;
+					$exclude_json_pattern[$path] = $path;
 				}
 			}
 		}
@@ -36,6 +36,7 @@ $parse = function($vars) use(&$exclude_json_pattern,&$copy_json_pattern,&$dummy_
 				if(!is_string($filename) || !is_string($dest)){
 					throw new \cmdman\InvalidJsonException('Invalid JSON: copy');
 				}else{
+					$filename = \cmdman\Util::path_absolute($cwd,$filename);
 					$copy_json_pattern[$filename] = $dest;
 				}
 			}
@@ -89,7 +90,7 @@ $parse = function($vars) use(&$exclude_json_pattern,&$copy_json_pattern,&$dummy_
 };
 
 if($json && ($f = (getcwd().'/composer.json')) && is_file($f)){
-	$parse(json_decode(file_get_contents($f),true));
+	$parse(json_decode(file_get_contents($f),true),getcwd());
 }
 
 $exclude_target = [];
@@ -104,7 +105,7 @@ foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir,\Fil
 			}
 		}
 	}else if($json && $f->getFilename() == 'composer.json'){
-		$parse(json_decode(file_get_contents($f->getPathname()),true));
+		$parse(json_decode(file_get_contents($f->getPathname()),true),dirname($f->getPathname()));
 	}
 }
 
@@ -198,12 +199,6 @@ if(!empty($dummy_json_pattern)){
 				$src .= ' extends \Exception';
 			}
 			$src .= '{'.PHP_EOL;
-			
-			if($type == 1 || $type == 4){
-				$src .= '	public function __construct(){'.PHP_EOL;
-				$src .= '		throw new \RuntimeException(\'Dummy\');'.PHP_EOL;
-				$src .= '	}'.PHP_EOL;
-			}
 			$src .= '}'.PHP_EOL;
 			
 			\cmdman\Std::println('    '.$filename);
