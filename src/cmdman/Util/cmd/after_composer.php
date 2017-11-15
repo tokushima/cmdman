@@ -76,6 +76,15 @@ $parse = function($vars) use(&$exclude_json_pattern,&$copy_json_pattern,&$dummy_
 				}
 			}
 		}
+		if(array_key_exists('dummy-exception',$vars['after'])){
+			foreach($vars['after']['dummy-exception'] as $classname){
+				if(!is_string($classname)){
+					throw new \cmdman\InvalidJsonException('Invalid JSON: dummy');
+				}else{
+					$dummy_json_pattern[$classname] = 4;
+				}
+			}
+		}
 	}
 };
 
@@ -168,7 +177,7 @@ if(!empty($dummy_json_pattern)){
 		$namespae = str_replace('/','\\',dirname($filename));
 		$classname = basename($filename);
 		
-		$filename = \cmdman\Util::path_absolute(\cmdman\Util::path_slash($dir,null,true).'/_dummy',$filename).'.php';
+		$filename = \cmdman\Util::path_absolute(\cmdman\Util::path_slash($dir,null,true).'/_dummy_sources',$filename).'.php';
 		
 		if(file_exists($filename)){
 			\cmdman\Std::println_white('    '.$filename.' (exists)');
@@ -178,14 +187,26 @@ if(!empty($dummy_json_pattern)){
 			if($namespae != '.'){
 				$src .= 'namespace '.$namespae.';'.PHP_EOL;
 			}
-			if($type == 1){
+			if($type == 1 || $type == 4){
 				$src .= 'class';
 			}else if($type == 2){
 				$src .= 'interface';
 			}else if($type == 3){
 				$src .= 'trait';
 			}
-			$src .= ' '.$classname.'{'.PHP_EOL.'}';
+			$src .= ' '.$classname;
+			
+			if($type == 4){
+				$src .= ' extends \Exception';
+			}
+			$src .= '{'.PHP_EOL;
+			
+			if($type == 1 || $type == 4){
+				$src .= '	public function __construct(){'.PHP_EOL;
+				$src .= '		throw new \RuntimeException(\'Dummy\');'.PHP_EOL;
+				$src .= '	}'.PHP_EOL;
+			}
+			$src .= '}'.PHP_EOL;
 			
 			\cmdman\Std::println('    '.$filename);
 			\cmdman\Util::file_write($filename,$src);
