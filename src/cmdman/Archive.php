@@ -69,19 +69,28 @@ class Archive{
 				$phar->addFile($v,'src/'.$k);
 			}
 		
-			$stabstr = sprintf("Phar::mapPhar('%s');",basename($output));
-			$stabstr .= sprintf(<<< 'STAB'
-		spl_autoload_register(function($c){
-			$c = str_replace('\\','/',$c);
-		
-			if(strpos($c,'%s/') === 0 && is_file($f='phar://'.__FILE__.'/src/'.$c.'.php')){
-				require_once($f);
-			}
-			return false;
-		},true,false);
-STAB
-					,$ns);
+			$stabstr = sprintf("Phar::mapPhar('%s');".PHP_EOL,basename($output));
 
+			$stabstr .= sprintf(<<< 'STAB'
+spl_autoload_register(function($c){
+	$c = str_replace('\\','/',$c);
+					
+	if(is_file($f='phar://'.__FILE__.'/src/'.$c.'.php')){
+		require_once($f);
+	}
+	return false;
+},true,false);
+STAB
+			);
+			
+			$stabstr .= sprintf(PHP_EOL.<<< 'STAB'
+$dir = getcwd().'/lib';
+if(is_dir($dir) && strpos(get_include_path(),$dir) === false){
+	set_include_path($dir.PATH_SEPARATOR.get_include_path());
+}
+STAB
+			);
+			
 			if(is_file('autoload.php')){
 				$phar->addFile('autoload.php','autoload.php');
 		
@@ -90,13 +99,6 @@ STAB
 						,basename($output)
 				);
 			}
-			$stabstr .= sprintf(PHP_EOL.<<< 'STAB'
-		$dir = getcwd().'/lib';
-		if(is_dir($dir) && strpos(get_include_path(),$dir) === false){
-			set_include_path($dir.PATH_SEPARATOR.get_include_path());
-		}
-STAB
-			);
 			
 			if(is_file('main.php')){
 				$phar->addFile('main.php','main.php');
@@ -106,6 +108,7 @@ STAB
 						,basename($output)
 				);
 			}
+
 			
 			$phar->setStub(sprintf(<<< 'STAB'
 <?php
@@ -113,7 +116,8 @@ STAB
 	__HALT_COMPILER();
 ?>
 STAB
-					,$stabstr));
+			,$stabstr));
+			
 			
 			if(is_file('version')){
 				$version = trim(file_get_contents('version'));
