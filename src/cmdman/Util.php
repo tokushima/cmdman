@@ -6,51 +6,52 @@ namespace cmdman;
 class Util{
 	/**
 	 * ファイルから取得する
-	 * @param string $filename ファイルパス
-	 * @return string
 	 */
-	public static function file_read($filename){
+	public static function file_read(string $filename): string{
 		if(!is_readable($filename) || !is_file($filename)){
 			throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$filename));
 		}
 		return file_get_contents($filename);
 	}
+
 	/**
 	 * ファイルに書き出す
-	 * @param string $filename ファイルパス
-	 * @param string $src 内容
 	 */
-	public static function file_write($filename,$src=null,$lock=true){
-		if(empty($filename)) throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$filename));
+	public static function file_write(string $filename, ?string $src=null, bool $lock=true): void{
+		if(empty($filename)){
+			throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$filename));
+		}
 		$b = is_file($filename);
 		self::mkdir(dirname($filename));
 		
 		if(false === file_put_contents($filename,(string)$src,($lock ? LOCK_EX : 0))){
 			throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$filename));
 		}
-		if(!$b) chmod($filename,0666);
+		if(!$b){
+			chmod($filename,0666);
+		}
 	}
 	/**
 	 * ファイルに追記する
-	 * @param string $filename ファイルパス
-	 * @param string $src 内容
 	 */
-	public static function file_append($filename,$src=null,$lock=true){
-		if(empty($filename)) throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$filename));
+	public static function file_append(string $filename, ?string $src=null, bool $lock=true): void{
+		if(empty($filename)){
+			throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$filename));
+		}
 		$b = is_file($filename);
 		self::mkdir(dirname($filename));
 	
 		if(false === file_put_contents($filename,(string)$src,FILE_APPEND|($lock ? LOCK_EX : 0))){
 			throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$filename));
 		}
-		if(!$b) chmod($filename,0666);
+		if(!$b){
+			chmod($filename,0666);
+		}
 	}
 	/**
 	 * フォルダを作成する
-	 * @param string $source 作成するフォルダパス
-	 * @param string $permission
 	 */
-	public static function mkdir($source,$permission=0755){
+	public static function mkdir(string $source, $permission=0755): bool{
 		$bool = true;
 		if(!is_dir($source)){
 			try{
@@ -72,10 +73,8 @@ class Util{
 	}
 	/**
 	 * 移動
-	 * @param string $source 移動もとのファイルパス
-	 * @param string $dest 移動後のファイルパス
 	 */
-	public static function mv($source,$dest){
+	public static function mv(string $source, string $dest): bool{
 		if(is_file($source) || is_dir($source)){
 			self::mkdir(dirname($dest));
 			return rename($source,$dest);
@@ -85,10 +84,8 @@ class Util{
 	/**
 	 * 削除
 	 * $sourceがフォルダで$inc_selfがfalseの場合は$sourceフォルダ以下のみ削除
-	 * @param string $source 削除するパス
-	 * @param boolean $inc_self $sourceも削除するか
 	 */
-	public static function rm($source,$inc_self=true){
+	public static function rm(string $source, bool $inc_self=true): void{
 		if(is_dir($source)){
 			$source = realpath($source);
 			$dir = [];
@@ -110,18 +107,15 @@ class Util{
 			foreach(array_keys($dir) as $d){
 				rmdir($d);
 			}
-			return;
-		}else if(is_file($source) && unlink($source)){
-			return;
+		}else if(is_file($source)){
+			unlink($source);
 		}
 	}
 	/**
 	 * コピー
 	 * $sourceがフォルダの場合はそれ以下もコピーする
-	 * @param string $source コピー元のファイルパス
-	 * @param string $dest コピー先のファイルパス
 	 */
-	public static function copy($source,$dest){
+	public static function copy(string $source, string $dest): void{
 		if(is_dir($source)){
 			$source = realpath($source);
 			$len = strlen($source);
@@ -134,22 +128,17 @@ class Util{
 				self::mkdir(dirname($destp));
 				copy($f->getPathname(),$destp);
 			}
-			return;
 		}else if(is_file($source)){
 			self::mkdir(dirname($dest));
 			copy($source,$dest);
-			return;
+		}else{
+			throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$source));
 		}
-		throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$source));
 	}
 	/**
-	 * ディレクトリ内のイテレータ
-	 * @param string $directory  検索対象のファイルパス
-	 * @param boolean $recursive 階層を潜って取得するか
-	 * @param string $pattern 検索するパターンを表す文字列
-	 * @return \RecursiveDirectoryIterator
+	 * ディレクトリ内のファイル・ディレクトリ
 	 */
-	public static function ls($directory,$recursive=false,$pattern=null){
+	public static function ls(string $directory, bool $recursive=false, ?string$pattern=null): \RecursiveDirectoryIterator{
 		$directory = self::parse_filename($directory);
 		
 		if(is_file($directory)){
@@ -167,17 +156,14 @@ class Util{
 		}
 		throw new \cmdman\AccessDeniedException(printf('permission denied `%s`',$directory));
 	}
-	private static function parse_filename($filename){
+	private static function parse_filename(string $filename): string{
 		$filename = preg_replace("/[\/]+/",'/',str_replace("\\",'/',trim($filename)));
 		return (substr($filename,-1) == '/') ? substr($filename,0,-1) : $filename;
 	}
 	/**
 	 * 絶対パスを返す
-	 * @param string $a
-	 * @param string $b
-	 * @return string
 	 */
-	public static function path_absolute($a,$b){
+	public static function path_absolute(?string $a, ?string $b): string{
 		if($b === '' || $b === null) return $a;
 		if($a === '' || $a === null || preg_match("/^[a-zA-Z]+:/",$b)) return $b;
 		if(preg_match("/^[\w]+\:\/\/[^\/]+/",$a,$h)){
@@ -219,12 +205,8 @@ class Util{
 	}
 	/**
 	 * パスの前後にスラッシュを追加／削除を行う
-	 * @param string $path ファイルパス
-	 * @param boolean $prefix 先頭にスラッシュを存在させるか
-	 * @param boolean $postfix 末尾にスラッシュを存在させるか
-	 * @return string
 	 */
-	public static function path_slash($path,$prefix,$postfix=null){
+	public static function path_slash(string $path, ?bool $prefix, ?bool $postfix=null): string{
 		if($path == '/') return ($postfix === true) ? '/' : '';
 		if(!empty($path)){
 			if($prefix === true){
@@ -246,7 +228,7 @@ class Util{
 	 * @param callable $callback 処理する関数
 	 * @param array $data 処理対象のデータ
 	 */
-	public static function pctrl(callable $callback,array $data){
+	public static function pctrl(callable $callback, array $data): void{
 		foreach($data as $key => $param){
 			$pid = pcntl_fork();
 			
@@ -265,13 +247,13 @@ class Util{
 	/**
 	 * エラーとして終了する
 	 */
-	public static function exit_error(){
+	public static function exit_error(): void{
 		exit(1);
 	}
 	/**
 	 * 一時停止として終了する
 	 */
-	public static function exit_wait(){
+	public static function exit_wait(): void{
 		exit(19);
 	}
 }

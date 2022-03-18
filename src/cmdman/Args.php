@@ -4,11 +4,11 @@ namespace cmdman;
 class Args{
 	public static $opt = [];
 	private static $value = [];
-	private static $cmd;
+	private static $cmd = '';
 
-	public static function init($offset=1){
+	public static function init(int $offset=1){
 		$opt = $value = [];
-		$argv = array_slice((isset($_SERVER['argv']) ? $_SERVER['argv'] : []),$offset);
+		$argv = array_slice($_SERVER['argv'] ?? [], $offset);
 			
 		if(!empty($argv) && isset($argv[0]) && substr($argv[0],0,1) != '-'){
 			self::$cmd = array_shift($argv);
@@ -35,19 +35,19 @@ class Args{
 		self::$opt = $opt;
 		self::$value = $value;
 	}
-	public static function opt($name,$default=false){
+	public static function opt(string $name, $default=false){
 		return array_key_exists($name,self::$opt) ? self::$opt[$name][0] : $default;
 	}
 	public static function value($default=null){
 		return isset(self::$value[0]) ? self::$value[0] : $default;
 	}
-	public static function opts($name){
-		return array_key_exists($name,self::$opt) ? self::$opt[$name] : [];
+	public static function opts(string $name){
+		return array_key_exists($name, self::$opt) ? self::$opt[$name] : [];
 	}
-	public static function values(){
+	public static function values(): array{
 		return self::$value;
 	}
-	public static function cmd(){
+	public static function cmd(): string{
 		return self::$cmd;
 	}
 }

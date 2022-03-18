@@ -5,8 +5,8 @@
  * @param string $daemon PID file path
  * @param string $log Path to output the last result
  * @param string $php PHP binary path 
- * @param boolean $force Forced execution
- * @param integer $wt Waiting time (sec)
+ * @param bool $force Forced execution
+ * @param int $wt Waiting time (sec)
  */
 $php = empty($php) ? 'php' : $php;
 ob_start();

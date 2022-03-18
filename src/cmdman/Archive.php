@@ -4,10 +4,8 @@ namespace cmdman;
 class Archive{
 	/**
 	 * ライブラリをpharにする
-	 * @param string $src ライブラリのルートフォルダ @['require'=>true]
-	 * @param string $out 出力先ファイル名
 	 */
-	public static function phar($src,$out=null){
+	public static function phar(string $src, ?string $out=null): void{
 		ini_set('memory_limit',-1);
 		
 		if(empty($src) || ($src = realpath($src)) === false || !is_dir($src)){
@@ -147,11 +145,10 @@ STAB
 	
 	/**
 	 * pharを展開する
-	 * @param string $f 展開したいpharファイル @['require'=>true]
-	 * @param string $o 出力先
 	 */
-	public static function unphar($f,$o=null){
-		$f = empty($f) ? false : realpath($f);
+	public static function unphar(string $phar_file, $output=null){
+		$f = empty($phar_file) ? false : realpath($phar_file);
+		$o = $output;
 
 		if($f === false){
 			throw new \InvalidArgumentException('`'.$f.'` not foundf');

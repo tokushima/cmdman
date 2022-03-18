@@ -2,10 +2,7 @@
 namespace cmdman;
 
 class Command{
-	/**
-	 * init
-	 */
-	public static function init(){
+	public static function init(): void{
 		if(is_file($f=getcwd().'/bootstrap.php') ||
 			is_file($f=getcwd().'/autoload.php') ||
 			is_file($f=getcwd().'/vendor/autoload.php')
@@ -18,7 +15,7 @@ class Command{
 			}
 		}
 	}
-	private static function get_include_path(){
+	private static function get_include_path(): array{
 		$include_path = [];
 
 		foreach(explode(PATH_SEPARATOR,get_include_path()) as $p){
@@ -64,7 +61,7 @@ class Command{
 		krsort($include_path);
 		return array_keys($include_path);
 	}
-	private static function validdir($dir){
+	private static function valid_dir($dir): bool{
 		if(is_dir($dir) &&
 				ctype_upper(substr(basename($dir),0,1)) &&
 				strpos($dir,'/.') === false &&
@@ -74,7 +71,7 @@ class Command{
 		}
 		return false;
 	}
-	private static function get_file($command){
+	private static function get_file(string $command): string{
 		$protocol = '';
 		
 		if(strpos($command,'#') !== false){
@@ -89,7 +86,7 @@ class Command{
 				if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd/'.$func.'.php')) ||
 					is_file($f=($protocol.$p.'/src/'.str_replace('.','/',$command).'/cmd/'.$func.'.php'))
 				){
-					if(self::validdir(dirname(dirname($f)))){
+					if(self::valid_dir(dirname(dirname($f)))){
 						return $f;
 					}
 				}
@@ -99,21 +96,16 @@ class Command{
 				if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd.php')) ||
 						is_file($f=($protocol.$p.'/src/'.str_replace('.','/',$command).'/cmd.php'))
 				){
-					if(self::validdir(dirname($f))){
+					if(self::valid_dir(dirname($f))){
 						return $f;
 					}
 				}
 			}
 		}
-		throw new \cmdman\Notfound($command.' not found.');
+		throw new \cmdman\NotFound($command.' not found.');
 	}
-	/**
-	 * exec
-	 * @param string $command
-	 * @param callable $error_funcs
-	 * @throws \InvalidArgumentException
-	 */
-	public static function exec($command,$error_funcs=null){
+
+	public static function exec(string $command, $error_funcs=null): void{
 		$_execute_file_519904 = self::get_file($command);
 		
 		try{
@@ -144,6 +136,7 @@ class Command{
 							    throw $_emsg_407635;
 							}
 							break;
+						case 'int':
 						case 'integer':
 							if(!is_numeric($_v_795509) || !ctype_digit((string)$_v_795509)){
 							    throw $_emsg_407635;
@@ -156,6 +149,7 @@ class Command{
 							}
 							$_v_795509 = (float)$_v_795509;
 							break;
+						case 'bool':
 						case 'boolean':
 							if(is_string($_v_795509)){
 								if($_v_795509 === 'true'){
@@ -246,8 +240,10 @@ class Command{
 			}
 			switch($help_params[$k][0]){
 				case 'string':
+				case 'int':
 				case 'integer':
 				case 'float':
+				case 'bool':
 				case 'boolean':
 					break;
 				default:
@@ -268,11 +264,8 @@ class Command{
 		}
 		return $help_params;
 	}
-	/**
-	 * ge document
-	 * @param string $command
-	 */
-	public static function doc($command){
+
+	public static function doc(string $command): void{
 		$pad = 4;
 		$help_params = self::get_params($command);
 		foreach(array_keys($help_params) as $k){
@@ -293,13 +286,9 @@ class Command{
 		\cmdman\Std::println("\n  Description:");
 		\cmdman\Std::println('   '.str_replace("\n","\n  ",$doc)."\n");
 	}
-	/**
-	 * finding commnads
-	 * @param mixed $list
-	 * @param string $r
-	 * @param string $realpath
-	 */
-	public static function find_cmd(&$list,$r,$realpath=null){
+
+
+	public static function find_cmd(&$list, $r, $realpath=null): void{
 		if($r instanceof \RecursiveDirectoryIterator){
 			$it = $r;
 			$r = $r->getFilename();
@@ -312,7 +301,7 @@ class Command{
 				,\RecursiveIteratorIterator::SELF_FIRST
 		);
 		foreach($it as $f){
-			if(self::validdir($f->getPathname())){
+			if(self::valid_dir($f->getPathname())){
 				if(is_file($cf=$f->getPathname().'/cmd.php') && !isset($list[$cf])){
 					$class = str_replace('/','.',substr(dirname($cf),strlen($r)+1));
 					$list[$cf] = [$class,self::get_summary($cf)];
@@ -345,11 +334,8 @@ class Command{
 			}
 		}
 	}
-	/**
-	 * get file list
-	 * @return string{}
-	 */
-	public static function get_list(){
+
+	public static function get_list(): array{
 		$list = [];
 		foreach(self::get_include_path() as $p){
 			if(($r = realpath($p)) !== false){

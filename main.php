@@ -69,7 +69,7 @@ if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true) {
 }else{
 	try{
 		\cmdman\Command::exec(\cmdman\Args::cmd(), \cmdman\Args::opt('error-callback'));
-	}catch(\cmdman\Notfound $e){
+	}catch(\cmdman\NotFound $e){
 		$usage();
 		\cmdman\Std::println_danger(\cmdman\Args::cmd().': subcommand not found');
 		\cmdman\Util::exit_error();

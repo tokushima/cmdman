@@ -2,8 +2,8 @@
 /**
  * Processing after composer update 
  * @param string $dir Target vendor folder @['require'=>true]
- * @param boolean $json Check composer.json @['init'=>true]
- * @param boolean $git Exclude .git
+ * @param bool $json Check composer.json @['init'=>true]
+ * @param bool $git Exclude .git
  */
 $exclude_pattern = ['tests','test','examples','example'];
 $exclude_json_pattern = [];
