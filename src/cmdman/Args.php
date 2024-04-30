@@ -5,11 +5,13 @@ class Args{
 	public static $opt = [];
 	private static $value = [];
 	private static $cmd = '';
+	private static $script = '';
 
 	public static function init(int $offset=1){
 		$opt = $value = [];
+		self::$script = $_SERVER['argv'][0] ?? null;
 		$argv = array_slice($_SERVER['argv'] ?? [], $offset);
-			
+		
 		if(!empty($argv) && isset($argv[0]) && substr($argv[0],0,1) != '-'){
 			self::$cmd = array_shift($argv);
 		}
@@ -49,5 +51,8 @@ class Args{
 	}
 	public static function cmd(): string{
 		return self::$cmd;
+	}
+	public static function script(): string{
+		return self::$script;
 	}
 }

@@ -48,7 +48,20 @@ if(\cmdman\Args::cmd() == null) {
 	$show($list);
 	exit;
 }else{
-	if(is_file(\cmdman\Args::cmd())) { // find phar file
+	if(strpos(\cmdman\Args::cmd(), '::') === false && !is_file(\cmdman\Args::cmd())){
+		$hit_list = [];
+		foreach(\cmdman\Command::get_list() as [$cmd]){
+			if(preg_match('/\:\:'.\cmdman\Args::cmd() .'$/', $cmd)){
+				$hit_list[] = $cmd;
+			}
+		}
+		if(sizeof($hit_list) === 1){
+			$_SERVER['argv'][1] = $hit_list[0];
+			\cmdman\Args::init();
+		}
+	}
+
+	if(is_file(\cmdman\Args::cmd())){
 		$list = [];
 		
 		if(\cmdman\Args::opt('v') === true || \cmdman\Args::opt('version') === true){
