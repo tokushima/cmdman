@@ -102,13 +102,13 @@ class Command{
 				}
 			}
 		}
-		throw new \cmdman\NotFound($command.' not found.');
+		throw new \cmdman\CommandNotFound('command not found: '.$command);
 	}
 
-	public static function exec(string $command, $error_funcs=null): void{
-		$_execute_file_519904 = self::get_file($command);
-		
+	public static function exec(string $command, $error_funcs=null): void{		
 		try{
+			$_execute_file_519904 = self::get_file($command);
+
 			if(strpos($_execute_file_519904,'phar://') === 0){
 				include_once(preg_replace('/^phar:\/\/(.+\.phar)\/.+$/','\\1',$_execute_file_519904));
 			}
@@ -174,6 +174,9 @@ class Command{
 			if(is_file($f=dirname($_execute_file_519904).'/__teardown__.php')){
 				include($f);
 			}
+		}catch(\cmdman\CommandNotFound $e){
+			\cmdman\Std::println_danger(PHP_EOL.$e->getMessage());
+			\cmdman\Std::println();
 		}catch(\Exception $exception){
 			if(is_file($_execute_file_519904) && is_file($f=dirname($_execute_file_519904).'/__exception__.php')){
 				include($f);
@@ -266,25 +269,30 @@ class Command{
 	}
 
 	public static function doc(string $command): void{
-		$pad = 4;
-		$help_params = self::get_params($command);
-		foreach(array_keys($help_params) as $k){
-			if($pad < strlen($k)){
-				$pad = strlen($k);
+		try{
+			$pad = 4;
+			$help_params = self::get_params($command);
+			foreach(array_keys($help_params) as $k){
+				if($pad < strlen($k)){
+					$pad = strlen($k);
+				}
 			}
-		}
-		\cmdman\Std::println(PHP_EOL.'Usage:');
-		\cmdman\Std::println('  '.$command);
-		if(!empty($help_params)){
-			\cmdman\Std::println("\n  Options:");
-			foreach($help_params as $k => $v){
-				\cmdman\Std::println('   '.sprintf('--%s%s %s',str_pad($k,$pad),(empty($v[0]) ? '' : ' ('.$v[0].')'),trim($v[1])));
+			\cmdman\Std::println(PHP_EOL.'Usage:');
+			\cmdman\Std::println('  '.$command);
+			if(!empty($help_params)){
+				\cmdman\Std::println("\n  Options:");
+				foreach($help_params as $k => $v){
+					\cmdman\Std::println('   '.sprintf('--%s%s %s',str_pad($k,$pad),(empty($v[0]) ? '' : ' ('.$v[0].')'),trim($v[1])));
+				}
 			}
+			$doc = self::get_docuemnt(self::get_file($command));
+			$doc = trim(preg_replace('/@.+/','',$doc));
+			\cmdman\Std::println("\n  Description:");
+			\cmdman\Std::println('   '.str_replace("\n","\n  ",$doc)."\n");
+		}catch(\cmdman\CommandNotFound $e){
+			\cmdman\Std::println_danger(PHP_EOL.$e->getMessage());
+			\cmdman\Std::println();
 		}
-		$doc = self::get_docuemnt(self::get_file($command));
-		$doc = trim(preg_replace('/@.+/','',$doc));
-		\cmdman\Std::println("\n  Description:");
-		\cmdman\Std::println('   '.str_replace("\n","\n  ",$doc)."\n");
 	}
 
 
