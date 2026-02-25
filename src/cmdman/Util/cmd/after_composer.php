@@ -152,7 +152,7 @@ if(!empty($copy_json_pattern)){
 			$dest = \cmdman\Util::path_absolute($dir,$dest);
 			
 			if(is_dir($dest)){
-				$dest = cmdman\Util::path_absolute($dest,basename($source));
+				$dest = \cmdman\Util::path_absolute($dest,basename($source));
 			}
 			if(file_exists($dest)){
 				\cmdman\Std::println_warning('    '.$dest.' (overwrite)');
@@ -173,7 +173,7 @@ if(!empty($dummy_json_pattern)){
 	
 	foreach($dummy_json_pattern as $class => $type){
 		$filename = \cmdman\Util::path_slash(str_replace('\\','/',$class),false);
-		$namespae = str_replace('/','\\',dirname($filename));
+		$namespace = str_replace('/','\\',dirname($filename));
 		$classname = basename($filename);
 		
 		$filename = \cmdman\Util::path_absolute(\cmdman\Util::path_slash($dir,null,true).'/_dummy_sources',$filename).'.php';
@@ -183,8 +183,8 @@ if(!empty($dummy_json_pattern)){
 		}else{
 			$src = '<?php'.PHP_EOL;
 			
-			if($namespae != '.'){
-				$src .= 'namespace '.$namespae.';'.PHP_EOL;
+			if($namespace != '.'){
+				$src .= 'namespace '.$namespace.';'.PHP_EOL;
 			}
 			if($type == 1 || $type == 4){
 				$src .= 'class';

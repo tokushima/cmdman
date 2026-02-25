@@ -52,24 +52,17 @@ class Util{
 	 * フォルダを作成する
 	 */
 	public static function mkdir(string $source, $permission=0755): bool{
-		$bool = true;
 		if(!is_dir($source)){
 			try{
-				$list = explode('/',str_replace('\\','/',$source));
-				$dir = '';
-				foreach($list as $d){
-					$dir = $dir.$d.'/';
-					if(!is_dir($dir)){
-						$bool = mkdir($dir);
-						if(!$bool) return $bool;
-						chmod($dir,$permission);
-					}
+				if(!mkdir($source,$permission,true)){
+					return false;
 				}
+				chmod($source,$permission);
 			}catch(\ErrorException $e){
 				throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$source));
 			}
 		}
-		return $bool;
+		return true;
 	}
 	/**
 	 * 移動
@@ -154,7 +147,7 @@ class Util{
 			}
 			return $it;
 		}
-		throw new \cmdman\AccessDeniedException(printf('permission denied `%s`',$directory));
+		throw new \cmdman\AccessDeniedException(sprintf('permission denied `%s`',$directory));
 	}
 	private static function parse_filename(string $filename): string{
 		$filename = preg_replace("/[\/]+/",'/',str_replace("\\",'/',trim($filename)));

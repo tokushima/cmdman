@@ -146,15 +146,15 @@ STAB
 	/**
 	 * pharを展開する
 	 */
-	public static function unphar(string $phar_file, $output=null){
+	public static function unphar(string $phar_file, $output=null): void{
 		$f = empty($phar_file) ? false : realpath($phar_file);
 		$o = $output;
 
 		if($f === false){
-			throw new \InvalidArgumentException('`'.$f.'` not foundf');
+			throw new \InvalidArgumentException('`'.$phar_file.'` not found');
 		}
 		if(!empty($o) && substr($o,-1) == '/'){
-			$o = substr($o,1);
+			$o = substr($o,0,-1);
 		
 			\cmdman\Util::mkdir($o);
 			$o = realpath($o);

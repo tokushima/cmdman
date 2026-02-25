@@ -2,6 +2,8 @@
 namespace cmdman;
 
 class Command{
+	private static $include_path_cache = null;
+
 	public static function init(): void{
 		if(is_file($f=getcwd().'/bootstrap.php') ||
 			is_file($f=getcwd().'/autoload.php') ||
@@ -16,6 +18,9 @@ class Command{
 		}
 	}
 	private static function get_include_path(): array{
+		if(self::$include_path_cache !== null){
+			return self::$include_path_cache;
+		}
 		$include_path = [];
 
 		foreach(explode(PATH_SEPARATOR,get_include_path()) as $p){
@@ -59,7 +64,8 @@ class Command{
 		$include_path[dirname(__DIR__)] = true;
 		
 		krsort($include_path);
-		return array_keys($include_path);
+		self::$include_path_cache = array_keys($include_path);
+		return self::$include_path_cache;
 	}
 	private static function valid_dir($dir): bool{
 		if(is_dir($dir) &&
@@ -116,7 +122,7 @@ class Command{
 				include($f);
 			}
 			
-			foreach(self::get_params($command) as $_k_679243 => $_i_526477){
+			foreach(self::get_params($command, $_execute_file_519904) as $_k_679243 => $_i_526477){
 				$_value_824432 = [];
 				$_emsg_407635 = new \InvalidArgumentException('$'.$_k_679243.' must be an `'.$_i_526477[0].'`');
 				$_opts_944947 = \cmdman\Args::opts($_k_679243);
@@ -211,18 +217,18 @@ class Command{
 		}
 		\cmdman\Util::exit_error();
 	}
-	private static function get_docuemnt($file){
+	private static function get_document($file){
 		return (preg_match('/\/\*\*.+?\*\//s',file_get_contents($file),$m)) ?
 		trim(preg_replace("/^[\s]*\*[\s]{0,1}/m","",str_replace(['/'.'**','*'.'/'],'',$m[0]))) :
 		'';
 	}
 	private static function get_summary($file){
-		$doc = trim(preg_replace('/@.+/','',self::get_docuemnt($file)));
+		$doc = trim(preg_replace('/@.+/','',self::get_document($file)));
 		list($summary) = explode(PHP_EOL,$doc);
 		return $summary;
 	}
-	private static function get_params($command){
-		$doc = self::get_docuemnt(self::get_file($command));
+	private static function get_params($command, $file=null){
+		$doc = self::get_document($file ?? self::get_file($command));
 			
 		$help_params = [];
 		if(preg_match_all('/@.+/',$doc,$as)){
@@ -270,8 +276,9 @@ class Command{
 
 	public static function doc(string $command): void{
 		try{
+			$file = self::get_file($command);
 			$pad = 4;
-			$help_params = self::get_params($command);
+			$help_params = self::get_params($command, $file);
 			foreach(array_keys($help_params) as $k){
 				if($pad < strlen($k)){
 					$pad = strlen($k);
@@ -285,7 +292,7 @@ class Command{
 					\cmdman\Std::println('   '.sprintf('--%s%s %s',str_pad($k,$pad),(empty($v[0]) ? '' : ' ('.$v[0].')'),trim($v[1])));
 				}
 			}
-			$doc = self::get_docuemnt(self::get_file($command));
+			$doc = self::get_document($file);
 			$doc = trim(preg_replace('/@.+/','',$doc));
 			\cmdman\Std::println("\n  Description:");
 			\cmdman\Std::println('   '.str_replace("\n","\n  ",$doc)."\n");
