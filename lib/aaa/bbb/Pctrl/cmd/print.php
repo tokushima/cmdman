@@ -2,7 +2,7 @@
 
 $m = microtime(true);
 
-\cmdman\Util::pctrl(function($arr){
+\cmdman\Util::parallel(function($arr){
 	sleep(2);
 	
 	foreach($arr as $i){

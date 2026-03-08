@@ -1,12 +1,12 @@
 <?php
-set_error_handler(function($n, $s, $f, $l) {
+set_error_handler(function(int $n, string $s, string $f, int $l): never {
 	throw new \ErrorException($s, 0, $n, $f, $l);
 });
-if(ini_get('date.timezone') == '') {
+if(ini_get('date.timezone') === '') {
 	date_default_timezone_set('Asia/Tokyo');
 }
 if(extension_loaded('mbstring')) {
-	if('neutral' == mb_language()) {
+	if('neutral' === mb_language()) {
 		mb_language('Japanese');
 	}
 	mb_internal_encoding('UTF-8');
@@ -21,16 +21,16 @@ if(isset($_SERVER['SERVER_PORT'])) {
 
 $version = is_file(__DIR__.'/version') ? file_get_contents(__DIR__.'/version') : '';
 
-$usage = function() use($version) {
-	$php = isset($_ENV['_']) ? $_ENV['_'] : 'php';
-	
+$usage = function() use($version): void {
+	$php = $_ENV['_'] ?? 'php';
+
 	\cmdman\Std::println('cmdman '.$version.' (PHP '.phpversion().')');
 	\cmdman\Std::println_info(sprintf('Type \'%s cmdman.phar subcommand --help\' for usage.'.PHP_EOL, basename($php)));
 	\cmdman\Std::println_primary('Subcommands:');
 };
-$show = function($list) {
+$show = function(array $list): void {
 	$len = 8;
-	
+
 	foreach($list as $info){
 		if($len < strlen($info[0]))
 			$len = strlen($info[0]);
@@ -41,21 +41,21 @@ $show = function($list) {
 	\cmdman\Std::println();
 };
 
-if(\cmdman\Args::cmd() == null) {
+if(\cmdman\Args::cmd() === '') {
 	$usage();
-	
+
 	$list = \cmdman\Command::get_list();
 	$show($list);
 	exit;
 }else{
-	if(strpos(\cmdman\Args::cmd(), '::') === false && !is_file(\cmdman\Args::cmd())){
+	if(!str_contains(\cmdman\Args::cmd(), '::') && !is_file(\cmdman\Args::cmd())){
 		$hit_list = [];
 		foreach(\cmdman\Command::get_list() as [$cmd]){
-			if(preg_match('/\:\:'.\cmdman\Args::cmd() .'$/', $cmd)){
+			if(str_ends_with($cmd, '::'.\cmdman\Args::cmd())){
 				$hit_list[] = $cmd;
 			}
 		}
-		if(sizeof($hit_list) === 1){
+		if(count($hit_list) === 1){
 			$_SERVER['argv'][1] = $hit_list[0];
 			\cmdman\Args::init();
 		}
@@ -63,7 +63,7 @@ if(\cmdman\Args::cmd() == null) {
 
 	if(is_file(\cmdman\Args::cmd())){
 		$list = [];
-		
+
 		if(\cmdman\Args::opt('v') === true || \cmdman\Args::opt('version') === true){
 			if(is_file($f='phar://'.realpath(\cmdman\Args::cmd()).'/version')){
 				\cmdman\Std::println_info('Version '.file_get_contents($f));
@@ -88,4 +88,3 @@ if(\cmdman\Args::opt('h') === true || \cmdman\Args::opt('help') === true) {
 		\cmdman\Util::exit_error();
 	}
 }
-

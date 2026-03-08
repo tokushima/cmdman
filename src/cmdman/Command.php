@@ -2,7 +2,7 @@
 namespace cmdman;
 
 class Command{
-	private static $include_path_cache = null;
+	private static ?array $include_path_cache = null;
 
 	public static function init(): void{
 		if(is_file($f=getcwd().'/bootstrap.php') ||
@@ -34,15 +34,15 @@ class Command{
 		if(class_exists('Composer\Autoload\ClassLoader')){
 			$r = new \ReflectionClass('Composer\Autoload\ClassLoader');
 			$vendor_dir = dirname(dirname($r->getFileName()));
-				
+
 			if(is_file($loader_php=$vendor_dir.'/autoload.php')){
 				$loader = include($loader_php);
-				
+
 				foreach([$loader->getPrefixes(),$loader->getPrefixesPsr4()] as $prefixs){
 					foreach($prefixs as $ns => $nspath){
 						$nsp = str_replace('\\','/',$ns);
-						
-						if(substr($nsp,-1) == '/'){
+
+						if(str_ends_with($nsp,'/')){
 							$nsp = substr($nsp,0,-1);
 						}
 						foreach($nspath as $path){
@@ -50,7 +50,7 @@ class Command{
 
 							if($path !== false){
 								$path = str_replace('\\','/',$path);
-								
+
 								if(preg_match('/^(.+)\/'.preg_quote($nsp,'/').'$/',$path,$m)){
 									$path = $m[1];
 								}
@@ -62,32 +62,28 @@ class Command{
 			}
 		}
 		$include_path[dirname(__DIR__)] = true;
-		
+
 		krsort($include_path);
 		self::$include_path_cache = array_keys($include_path);
 		return self::$include_path_cache;
 	}
-	private static function valid_dir($dir): bool{
-		if(is_dir($dir) &&
-				ctype_upper(substr(basename($dir),0,1)) &&
-				strpos($dir,'/.') === false &&
-				strpos($dir,'/_') === false
-		){
-			return true;
-		}
-		return false;
+	private static function valid_dir(string $dir): bool{
+		return is_dir($dir) &&
+			ctype_upper(basename($dir)[0]) &&
+			!str_contains($dir,'/.') &&
+			!str_contains($dir,'/_');
 	}
 	private static function get_file(string $command): string{
 		$protocol = '';
-		
-		if(strpos($command,'#') !== false){
-			list($file,$command) = explode('#',$command,2);
+
+		if(str_contains($command,'#')){
+			[$file,$command] = explode('#',$command,2);
 			$file = realpath($file);
 			$protocol = 'phar://';
-		}		
-		if(strpos($command,'::') !== false){
-			list($command,$func) = explode('::',$command,2);
-			
+		}
+		if(str_contains($command,'::')){
+			[$command,$func] = explode('::',$command,2);
+
 			foreach((isset($file) ? [$file] : self::get_include_path()) as $p){
 				if(is_file($f=($protocol.$p.'/'.str_replace('.','/',$command).'/cmd/'.$func.'.php')) ||
 					is_file($f=($protocol.$p.'/src/'.str_replace('.','/',$command).'/cmd/'.$func.'.php'))
@@ -111,83 +107,60 @@ class Command{
 		throw new \cmdman\CommandNotFound('command not found: '.$command);
 	}
 
-	public static function exec(string $command, $error_funcs=null): void{		
+	public static function exec(string $command, mixed $error_funcs=null): void{
 		try{
-			$_execute_file_519904 = self::get_file($command);
+			$__cmdman_file = self::get_file($command);
 
-			if(strpos($_execute_file_519904,'phar://') === 0){
-				include_once(preg_replace('/^phar:\/\/(.+\.phar)\/.+$/','\\1',$_execute_file_519904));
+			if(str_starts_with($__cmdman_file,'phar://')){
+				include_once(preg_replace('/^phar:\/\/(.+\.phar)\/.+$/','\\1',$__cmdman_file));
 			}
-			if(is_file($f=dirname($_execute_file_519904).'/__setup__.php')){
+			if(is_file($f=dirname($__cmdman_file).'/__setup__.php')){
 				include($f);
 			}
-			
-			foreach(self::get_params($command, $_execute_file_519904) as $_k_679243 => $_i_526477){
-				$_value_824432 = [];
-				$_emsg_407635 = new \InvalidArgumentException('$'.$_k_679243.' must be an `'.$_i_526477[0].'`');
-				$_opts_944947 = \cmdman\Args::opts($_k_679243);
 
-				if(empty($_opts_944947)){
-					if($_i_526477[2]['require']){
-						throw new \InvalidArgumentException('--'.$_k_679243.' required');
+			foreach(self::get_params($command, $__cmdman_file) as $__cmdman_key => $__cmdman_param){
+				$__cmdman_values = [];
+				$__cmdman_err = new \InvalidArgumentException('$'.$__cmdman_key.' must be an `'.$__cmdman_param[0].'`');
+				$__cmdman_opts = \cmdman\Args::opts($__cmdman_key);
+
+				if(empty($__cmdman_opts)){
+					if($__cmdman_param[2]['require']){
+						throw new \InvalidArgumentException('--'.$__cmdman_key.' required');
 					}
-					if(isset($_i_526477[2]['init'])){
-						$_opts_944947 = is_array($_i_526477[2]['init']) ? $_i_526477[2]['init'] : [$_i_526477[2]['init']];
+					if(isset($__cmdman_param[2]['init'])){
+						$__cmdman_opts = is_array($__cmdman_param[2]['init']) ? $__cmdman_param[2]['init'] : [$__cmdman_param[2]['init']];
 					}
 				}
-				foreach($_opts_944947 as $_v_795509){
-					switch($_i_526477[2]['is_a'] ? substr($_i_526477[0],0,-2) : $_i_526477[0]){
-						case 'string':
-							if(!is_string($_v_795509)){
-							    throw $_emsg_407635;
-							}
-							break;
-						case 'int':
-						case 'integer':
-							if(!is_numeric($_v_795509) || !ctype_digit((string)$_v_795509)){
-							    throw $_emsg_407635;
-							}
-							$_v_795509 = (int)$_v_795509;
-							break;
-						case 'float':
-							if(!is_numeric($_v_795509)){
-							    throw $_emsg_407635;
-							}
-							$_v_795509 = (float)$_v_795509;
-							break;
-						case 'bool':
-						case 'boolean':
-							if(is_string($_v_795509)){
-								if($_v_795509 === 'true'){
-								    $_v_795509 = true;
-								}
-								if($_v_795509 === 'false'){
-								    $_v_795509 = false;
-								}
-							}
-							if(!is_bool($_v_795509)){
-							    throw $_emsg_407635;
-							}
-							$_v_795509 = (boolean)$_v_795509;
-							break;
-					}
-					$_value_824432[] = $_v_795509;
+				foreach($__cmdman_opts as $__cmdman_val){
+					$__cmdman_type = $__cmdman_param[2]['is_a'] ? substr($__cmdman_param[0],0,-2) : $__cmdman_param[0];
+					$__cmdman_val = match($__cmdman_type){
+						'string' => is_string($__cmdman_val) ? $__cmdman_val : throw $__cmdman_err,
+						'int','integer' => (!is_numeric($__cmdman_val) || !ctype_digit((string)$__cmdman_val)) ? throw $__cmdman_err : (int)$__cmdman_val,
+						'float' => !is_numeric($__cmdman_val) ? throw $__cmdman_err : (float)$__cmdman_val,
+						'bool','boolean' => match(true){
+							$__cmdman_val === 'true', $__cmdman_val === true => true,
+							$__cmdman_val === 'false', $__cmdman_val === false => false,
+							default => throw $__cmdman_err,
+						},
+						default => $__cmdman_val,
+					};
+					$__cmdman_values[] = $__cmdman_val;
 				}
-				$$_k_679243 = ($_i_526477[2]['is_a'] ? $_value_824432 : (empty($_value_824432) ? null : $_value_824432[0]));
+				$$__cmdman_key = ($__cmdman_param[2]['is_a'] ? $__cmdman_values : (empty($__cmdman_values) ? null : $__cmdman_values[0]));
 			}
-			include($_execute_file_519904);
+			include($__cmdman_file);
 
-			if(is_file($f=dirname($_execute_file_519904).'/__teardown__.php')){
+			if(is_file($f=dirname($__cmdman_file).'/__teardown__.php')){
 				include($f);
 			}
 		}catch(\cmdman\CommandNotFound $e){
 			\cmdman\Std::println_danger(PHP_EOL.$e->getMessage());
 			\cmdman\Std::println();
 		}catch(\Exception $exception){
-			if(is_file($_execute_file_519904) && is_file($f=dirname($_execute_file_519904).'/__exception__.php')){
+			if(is_file($__cmdman_file) && is_file($f=dirname($__cmdman_file).'/__exception__.php')){
 				include($f);
 			}
-			\cmdman\Std::println_danger(PHP_EOL.'Exception: ('.get_class($exception).')');
+			\cmdman\Std::println_danger(PHP_EOL.'Exception: ('.$exception::class.')');
 			\cmdman\Std::println(implode(' ',explode(PHP_EOL,PHP_EOL.$exception->getMessage())));
 			\cmdman\Std::println();
 
@@ -196,45 +169,65 @@ class Command{
 			\cmdman\Std::println_danger(PHP_EOL.'Fatal: ');
 			\cmdman\Std::println(implode(' ',explode(PHP_EOL,PHP_EOL.$exception->getMessage())));
 			\cmdman\Std::println();
-			
+
 			self::error_callback($error_funcs, $exception);
 		}
 	}
-	private static function error_callback($error_funcs,$exception){
+	private static function error_callback(mixed $error_funcs, \Throwable $exception): never{
 		if(!is_callable($error_funcs) && defined('CMDMAN_ERROR_CALLBACK')){
 			$error_funcs = constant('CMDMAN_ERROR_CALLBACK');
 		}
 		if(is_string($error_funcs)){
-			if(strpos($error_funcs,'::') !== false){
+			if(str_contains($error_funcs,'::')){
 				$error_funcs = explode('::',$error_funcs);
-				if(strpos($error_funcs[0],'.') !== false){
+				if(str_contains($error_funcs[0],'.')){
 					$error_funcs[0] = '\\'.str_replace('.','\\',$error_funcs[0]);
 				}
 			}
 		}
 		if(is_callable($error_funcs)){
-			call_user_func_array($error_funcs,[$exception]);
+			$error_funcs($exception);
 		}
 		\cmdman\Util::exit_error();
 	}
-	private static function get_document($file){
+	private static function parse_annotation(string $str): ?array{
+		$str = trim($str,'[] ');
+		if(empty($str)){
+			return [];
+		}
+		$result = [];
+		if(preg_match_all("/'(\w+)'\s*=>\s*(.+?)(?:\s*,\s*|$)/", $str, $matches, PREG_SET_ORDER)){
+			foreach($matches as $m){
+				$val = trim($m[2]);
+				$result[$m[1]] = match(true){
+					$val === 'true' => true,
+					$val === 'false' => false,
+					is_numeric($val) => str_contains($val,'.') ? (float)$val : (int)$val,
+					default => trim($val,"'\""),
+				};
+			}
+			return $result;
+		}
+		return null;
+	}
+	private static function get_document(string $file): string{
 		return (preg_match('/\/\*\*.+?\*\//s',file_get_contents($file),$m)) ?
 		trim(preg_replace("/^[\s]*\*[\s]{0,1}/m","",str_replace(['/'.'**','*'.'/'],'',$m[0]))) :
 		'';
 	}
-	private static function get_summary($file){
+	private static function get_summary(string $file): string{
 		$doc = trim(preg_replace('/@.+/','',self::get_document($file)));
-		list($summary) = explode(PHP_EOL,$doc);
+		[$summary] = explode(PHP_EOL,$doc);
 		return $summary;
 	}
-	private static function get_params($command, $file=null){
+	private static function get_params(string $command, ?string $file=null): array{
 		$doc = self::get_document($file ?? self::get_file($command));
-			
+
 		$help_params = [];
 		if(preg_match_all('/@.+/',$doc,$as)){
 			foreach($as[0] as $m){
 				if(preg_match("/@(\w+)\s+([^\s]+)\s+\\$(\w+)(.*)/",$m,$p)){
-					if($p[1] == 'param'){
+					if($p[1] === 'param'){
 						$help_params[$p[3]] = [$p[2],trim($p[4]),['is_a'=>false,'init'=>null,'require'=>false]];
 					}
 				}else if(preg_match("/@(\w+)\s+\\$(\w+)(.*)/",$m,$p)){
@@ -243,23 +236,16 @@ class Command{
 			}
 		}
 		foreach($help_params as $k => $v){
-			if(substr($v[0],-2) == '[]'){
+			if(str_ends_with($v[0],'[]')){
 				$help_params[$k][0] = substr($v[0],0,-2);
 				$help_params[$k][2]['is_a'] = true;
 			}
-			switch($help_params[$k][0]){
-				case 'string':
-				case 'int':
-				case 'integer':
-				case 'float':
-				case 'bool':
-				case 'boolean':
-					break;
-				default:
-					throw new \InvalidArgumentException('$'.$k.': invalid type `'.$v[0].'`');
-			}
+			match($help_params[$k][0]){
+				'string','int','integer','float','bool','boolean' => null,
+				default => throw new \InvalidArgumentException('$'.$k.': invalid type `'.$v[0].'`'),
+			};
 			if(false !== ($p=strpos($v[1],'@['))){
-				$anon = @eval('return '.str_replace(['[',']'],['array(',')'],substr($v[1],$p+1,strrpos($v[1],']')-$p).';'));
+				$anon = self::parse_annotation(substr($v[1],$p+1,strrpos($v[1],']')-$p));
 				if(!is_array($anon)){
 					throw new \InvalidArgumentException('annotation error : `'.$k.'`');
 				}
@@ -303,7 +289,7 @@ class Command{
 	}
 
 
-	public static function find_cmd(&$list, $r, $realpath=null): void{
+	public static function find_cmd(array &$list, \RecursiveDirectoryIterator|\Phar|string $r, ?string $realpath=null): void{
 		if($r instanceof \RecursiveDirectoryIterator){
 			$it = $r;
 			$r = $r->getFilename();
@@ -325,11 +311,11 @@ class Command{
 					foreach(new \DirectoryIterator($cd) as $fi){
 						if(
 							$fi->isFile() &&
-							strpos($fi->getFilename(),'_') !== 0 &&
-							substr($fi->getFilename(),-4) == '.php' &&
-							!isset($list[$fi->getPathname()] )
+							!str_starts_with($fi->getFilename(),'_') &&
+							str_ends_with($fi->getFilename(),'.php') &&
+							!isset($list[$fi->getPathname()])
 						){
-							if(strpos($f->getPathname(),'phar://') !== false){
+							if(str_contains($f->getPathname(),'phar://')){
 								$class = $realpath.'#'.
 									preg_replace(
 											'/^(src.)/',
@@ -358,10 +344,10 @@ class Command{
 			}
 		}
 		ksort($list);
-		
+
 		$cmdlist = [];
 		self::find_cmd($cmdlist,dirname(__DIR__));
-		
+
 		foreach($cmdlist as $k => $v){
 			$cmdlist[$k][0] = str_replace('#','',$cmdlist[$k][0]);
 		}

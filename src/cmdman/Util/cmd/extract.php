@@ -1,11 +1,8 @@
 <?php
 /**
- * Extract the contents of a phar archive to a directory
- * 
+ * Extract a Phar archive to a directory
  * @param string $file Phar file path @['require'=>true]
- * @param string $out Output path
+ * @param string $out Output directory path
  */
-$args = \cmdman\Args::values();
-	
 \cmdman\Archive::unphar($file,$out);
 

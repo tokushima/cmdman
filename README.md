@@ -1,6 +1,6 @@
 # cmdman
 
-PHP製の軽量CLIコマンドフレームワーク (PHP 7.1+)
+PHP製の軽量CLIコマンドフレームワーク (PHP 8.3+)
 
 名前空間ベースのルーティングでコマンドを管理・実行します。
 
@@ -238,12 +238,12 @@ $password = \cmdman\Std::silently('パスワード');
 \cmdman\Util::ls('/path/to/dir', true, '/\.php$/');       // パターン指定
 ```
 
-## 並列処理 (`\cmdman\Util::pctrl`)
+## 並列処理 (`\cmdman\Util::parallel`)
 
 `pcntl` 拡張が必要です。データの数だけプロセスをフォークして並列処理します。
 
 ```php
-\cmdman\Util::pctrl(function($item, $key){
+\cmdman\Util::parallel(function($item, $key){
     // 子プロセスで実行される
     echo $item . PHP_EOL;
 }, ['task1', 'task2', 'task3']);
@@ -253,7 +253,7 @@ $password = \cmdman\Std::silently('パスワード');
 
 ```php
 \cmdman\Util::exit_error();   // エラーとして終了 (exit code: 1)
-\cmdman\Util::exit_wait();    // 一時停止として終了 (exit code: 19)
+\cmdman\Util::exit_wait();    // 待機して再実行を要求 (exit code: 19)
 ```
 
 `exit_wait()` は `cmdman.Util::repeat` コマンドと組み合わせて使います。
@@ -274,7 +274,7 @@ php cmdman.phar cmdman.Util::extract --file library.phar
 php cmdman.phar cmdman.Util::extract --file library.phar --out ./output/
 ```
 
-### コマンドの繰り返し実行
+### コマンドの定期実行
 
 ```sh
 # 60秒間隔で繰り返し実行

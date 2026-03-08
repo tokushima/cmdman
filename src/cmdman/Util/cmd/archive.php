@@ -1,9 +1,7 @@
 <?php
 /**
- * Creating Phar Archives
- * @param string $dir Library path @['require'=>true]
- * @param string $out Output path
+ * Create a Phar archive from a directory
+ * @param string $dir Source directory path @['require'=>true]
+ * @param string $out Output file path
  */
-$args = \cmdman\Args::values();
-	
 \cmdman\Archive::phar($dir,$out);
