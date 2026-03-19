@@ -4,7 +4,7 @@ namespace cmdman;
  * ユーティリティ群
  */
 class Util{
-	public const int EXIT_WAIT = 19;
+	public const EXIT_WAIT = 19;
 	/**
 	 * ファイルから取得する
 	 */
