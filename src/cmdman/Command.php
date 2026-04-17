@@ -315,7 +315,7 @@ class Command{
 							str_ends_with($fi->getFilename(),'.php') &&
 							!isset($list[$fi->getPathname()])
 						){
-							if(str_contains($f->getPathname(),'phar://')){
+							if(str_contains($f->getPathname(),'phar://') && $realpath !== null){
 								$class = $realpath.'#'.
 									preg_replace(
 											'/^(src.)/',
@@ -323,7 +323,7 @@ class Command{
 											str_replace('/','.',substr($f->getPathname(),strpos($f->getPathname(),'.phar/')+6))
 									);
 							}else{
-								$class = str_replace('/','.',substr($f->getPathname(),strlen($r)+1));
+								$class = str_replace('/','.',substr($f->getPathname(),strlen((string)$r)+1));
 							}
 							$list[$fi->getPathname()] = [
 								$class.'::'.substr($fi->getFilename(),0,-4),

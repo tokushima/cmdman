@@ -17,6 +17,30 @@ if(isset($_SERVER['SERVER_PORT'])) {
 	exit();
 }
 \cmdman\Args::init();
+
+if(\cmdman\Args::opt('install') !== false){
+	$phar_path = \Phar::running(false);
+	if(empty($phar_path)){
+		fwrite(STDERR, 'Error: --install can only be used from cmdman.phar'.PHP_EOL);
+		exit(1);
+	}
+	$install_path = \cmdman\Args::opt('install');
+	if(!is_string($install_path)){
+		$install_path = '/usr/local/bin/cmdman';
+	}
+	try{
+		if(!copy($phar_path, $install_path)){
+			throw new \RuntimeException('copy failed');
+		}
+		chmod($install_path, 0755);
+	}catch(\Throwable $e){
+		fwrite(STDERR, 'Error: Permission denied. Try: sudo php '.$phar_path.' --install'.PHP_EOL);
+		exit(1);
+	}
+	echo 'Installed to '.$install_path.PHP_EOL;
+	exit(0);
+}
+
 \cmdman\Command::init();
 
 $version = is_file(__DIR__.'/version') ? file_get_contents(__DIR__.'/version') : '';
