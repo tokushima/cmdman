@@ -278,26 +278,50 @@ php cmdman.phar cmdman.Util::extract --file library.phar --out ./output/
 
 ```sh
 # 60秒間隔で繰り返し実行
-php cmdman.phar cmdman.Util::repeat --cmd "my.Cmd --name test"
+php cmdman.phar repeat my.Cmd
 
 # 待ち時間を指定 (秒)
-php cmdman.phar cmdman.Util::repeat --cmd "my.Cmd" --wt 120
+php cmdman.phar repeat my.Cmd --interval 120
 
-# デーモン化 (PIDファイルで管理)
-php cmdman.phar cmdman.Util::repeat --cmd "my.Cmd" --daemon /tmp/mycmd
+# PIDファイルで管理
+php cmdman.phar repeat my.Cmd --pid /tmp/mycmd.pid
 
-# ログ出力
-php cmdman.phar cmdman.Util::repeat --cmd "my.Cmd" --log /var/log/mycmd.log
-
-# エラー時も強制続行
-php cmdman.phar cmdman.Util::repeat --cmd "my.Cmd" --force
+# 対象コマンドに引数を渡す (-- 以降が対象コマンドへ)
+php cmdman.phar repeat my.Cmd --interval 60 -- --name test --count 3
 ```
 
-コマンドが `exit_wait()` で終了した場合、`--wt` で指定した時間待機してから再実行します。
-コマンドがエラー終了した場合、`--force` を指定していなければ繰り返しを停止します。
+コマンドが `exit_wait()` で終了した場合、`--interval` で指定した時間待機してから再実行します。
+コマンドがそれ以外のエラー終了コードで終了した場合、繰り返しを停止します。
 
 ## ビルド
 
 ```sh
 php -d phar.readonly=0 cmdman.php cmdman.Util::archive --dir src/
+```
+
+`make.sh` を使うとビルドとインストールを一括で行えます。
+
+```sh
+./make.sh            # ビルドのみ
+sudo ./make.sh --install   # /usr/local/bin/cmdman にインストール
+```
+
+## インストール
+
+ビルド済みの `cmdman.phar` は自身を `/usr/local/bin/cmdman` にインストールできます。
+
+```sh
+sudo php cmdman.phar --install
+```
+
+インストール先を指定することもできます。
+
+```sh
+sudo php cmdman.phar --install /usr/local/bin/mycmd
+```
+
+インストール後はパスを省略して実行できます。
+
+```sh
+cmdman <コマンド名> [--オプション名 値]
 ```

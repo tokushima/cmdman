@@ -112,7 +112,12 @@ class Command{
 			$__cmdman_file = self::get_file($command);
 
 			if(str_starts_with($__cmdman_file,'phar://')){
-				include_once(preg_replace('/^phar:\/\/(.+\.phar)\/.+$/','\\1',$__cmdman_file));
+				$current_phar = \Phar::running(false);
+				if($current_phar === '' || !str_starts_with($__cmdman_file,'phar://'.$current_phar.'/')){
+					if(preg_match('/^phar:\/\/(.+\.phar)\/.+$/',$__cmdman_file,$m)){
+						include_once($m[1]);
+					}
+				}
 			}
 			if(is_file($f=dirname($__cmdman_file).'/__setup__.php')){
 				include($f);

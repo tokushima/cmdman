@@ -1,52 +1,61 @@
 <?php
 /**
  * Run a command repeatedly at a fixed interval
- * @param string $cmd Command to execute @['require'=>true]
- * @param int $wt Wait interval between executions (sec) @['init'=>60]
- * @param string $daemon PID file path for daemonized execution
- * @param string $log Output file path, or "stdout" to print directly
- * @param string $php PHP binary path @['init'=>'php']
- * @param bool $force Continue even if command exits with error
+ * @param int $interval Wait interval between executions (sec) @['init'=>60]
+ * @param string $pid PID file path for daemonized execution
  */
-$php = empty($php) ? 'php' : $php;
-ob_start();
-	system(escapeshellarg($php).' -v');
-$chk = ob_get_clean();
-
-if(substr($chk,0,3) !== 'PHP'){
-	\cmdman\Std::println_danger($php.' not a PHP');
-	exit;
+$target = \cmdman\Args::value();
+if(empty($target)){
+	$legacy_cmd = \cmdman\Args::opt('cmd');
+	if(is_string($legacy_cmd)){
+		$target = $legacy_cmd;
+	}
+}
+if(empty($target)){
+	\cmdman\Std::println_danger('target command required');
+	\cmdman\Util::exit_error();
+}
+if(empty($interval)){
+	$legacy_wt = \cmdman\Args::opt('wt');
+	$interval = is_numeric($legacy_wt) ? (int)$legacy_wt : 60;
+}
+if(empty($pid)){
+	$legacy_daemon = \cmdman\Args::opt('daemon');
+	if(is_string($legacy_daemon)){
+		$pid = $legacy_daemon;
+	}
 }
 $self = $_SERVER['PHP_SELF'];
-$command = escapeshellarg($php).' '.escapeshellarg($self).' '.$cmd;
-$pid = (empty($daemon) || substr($daemon,-4) == '.pid') ? $daemon : $daemon.'.pid';
+$argv = $_SERVER['argv'] ?? [];
+$sep = array_search('--',$argv,true);
+$extra = ($sep !== false) ? array_slice($argv,$sep + 1) : [];
+$command = escapeshellarg(PHP_BINARY).' '.escapeshellarg($self).' '.escapeshellarg($target);
+foreach($extra as $a){
+	$command .= ' '.escapeshellarg($a);
+}
+$pid_file = (empty($pid) || str_ends_with($pid,'.pid')) ? $pid : $pid.'.pid';
 $ext_pcntl = extension_loaded('pcntl');
 $wait_status = \cmdman\Util::EXIT_WAIT;
-$wait_time = empty($wt) ? 60 : $wt;
 $shutdown = false;
 
-if(!empty($log) && $log !== 'stdout'){
-	\cmdman\Util::file_append($log,'');
-}
-
-$shutdown_func = function() use($pid,&$shutdown){
+$shutdown_func = function() use($pid_file, &$shutdown){
 	if($shutdown){
 		return;
 	}
 	$shutdown = true;
 
-	if(!empty($pid) && file_exists($pid)){
-		unlink($pid);
+	if(!empty($pid_file) && file_exists($pid_file)){
+		unlink($pid_file);
 	}
 	exit;
 };
 
-if(!empty($pid)){
-	if(file_exists($pid)){
+if(!empty($pid_file)){
+	if(file_exists($pid_file)){
 		\cmdman\Std::println_warning('Already running');
 		exit;
 	}
-	\cmdman\Util::file_write($pid,(extension_loaded('posix') ? posix_getpid() : '').','.$cmd);
+	\cmdman\Util::file_write($pid_file,(extension_loaded('posix') ? posix_getpid() : '').','.$target);
 
 	if($ext_pcntl){
 		pcntl_signal(SIGINT,$shutdown_func);
@@ -56,34 +65,25 @@ if(!empty($pid)){
 }
 
 while(true){
-	ob_start();
-		system($command,$return_var);
-	$rtn = ob_get_clean();
+	system($command,$return_var);
 
-	if(!empty($log)){
-		if($log === 'stdout'){
-			print($rtn);
-		}else{
-			\cmdman\Util::file_append($log,$rtn);
-		}
-	}
 	if($ext_pcntl){
 		pcntl_signal_dispatch();
 	}
-	if(!empty($pid) && !file_exists($pid)){
+	if(!empty($pid_file) && !file_exists($pid_file)){
 		$shutdown_func();
 	}
 	if($return_var !== 0){
-		if($return_var !== $wait_status && !$force){
+		if($return_var !== $wait_status){
 			exit;
 		}
-		for($i=0;$i<$wait_time;$i++){
+		for($i=0;$i<$interval;$i++){
 			sleep(1);
 
 			if($ext_pcntl){
 				pcntl_signal_dispatch();
 			}
-			if(!empty($pid) && $i % 60 === 59 && !file_exists($pid)){
+			if(!empty($pid_file) && $i % 60 === 59 && !file_exists($pid_file)){
 				$shutdown_func();
 			}
 		}
