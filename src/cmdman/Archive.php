@@ -22,9 +22,12 @@ class Archive{
 				$src,
 				\FilesystemIterator::SKIP_DOTS|\FilesystemIterator::UNIX_PATHS
 		),\RecursiveIteratorIterator::SELF_FIRST) as $r){
-			if($r->isFile()){
+			if($r->isFile() && !str_starts_with($r->getFilename(),'.')){
 				if(empty($ns)){
-					$ns = str_replace($src,'',dirname($r->getPathname()));
+					$ns = substr(dirname($r->getPathname()),$srclen);
+					if($ns === '' || $ns === false){
+						$ns = basename(rtrim($src,'/'));
+					}
 				}
 				$path = substr($r,$srclen);
 				$dir = dirname($path);

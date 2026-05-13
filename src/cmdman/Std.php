@@ -11,7 +11,7 @@ class Std{
 			print($msg.(empty($choice) ? '' : ' ('.implode(' / ',$choice).')').(empty($default) ? '' : ' ['.$default.']').': ');
 
 			if($silently && !str_starts_with(PHP_OS,'WIN')){
-				`tty -s && stty -echo`;
+				shell_exec('tty -s && stty -echo');
 			}
 			while(true){
 				fscanf(STDIN,'%s',$b);
@@ -25,7 +25,7 @@ class Std{
 				}
 			}
 			if($silently && !str_starts_with(PHP_OS,'WIN')){
-				`tty -s && stty echo`;
+				shell_exec('tty -s && stty echo');
 			}
 			$result = substr(str_replace(["\r\n","\r","\n"],"\n",$result),0,-1);
 			if(empty($result)){
