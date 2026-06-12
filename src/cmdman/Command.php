@@ -128,6 +128,9 @@ class Command{
 				$__cmdman_err = new \InvalidArgumentException('$'.$__cmdman_key.' must be an `'.$__cmdman_param[0].'`');
 				$__cmdman_opts = \cmdman\Args::opts($__cmdman_key);
 
+				if(empty($__cmdman_opts) && !empty($__cmdman_param[2]['short'])){
+					$__cmdman_opts = \cmdman\Args::opts($__cmdman_param[2]['short']);
+				}
 				if(empty($__cmdman_opts)){
 					if($__cmdman_param[2]['require']){
 						throw new \InvalidArgumentException('--'.$__cmdman_key.' required');
@@ -241,6 +244,8 @@ class Command{
 			}
 		}
 		foreach($help_params as $k => $v){
+			$help_params[$k][2]['short'] = null;
+
 			if(str_ends_with($v[0],'[]')){
 				$help_params[$k][0] = substr($v[0],0,-2);
 				$help_params[$k][2]['is_a'] = true;
@@ -254,7 +259,7 @@ class Command{
 				if(!is_array($anon)){
 					throw new \InvalidArgumentException('annotation error : `'.$k.'`');
 				}
-				foreach(['init','require'] as $a){
+				foreach(['init','require','short'] as $a){
 					if(isset($anon[$a])){
 						$help_params[$k][2][$a] = $anon[$a];
 					}
@@ -280,7 +285,8 @@ class Command{
 			if(!empty($help_params)){
 				\cmdman\Std::println("\n  Options:");
 				foreach($help_params as $k => $v){
-					\cmdman\Std::println('   '.sprintf('--%s%s %s',str_pad($k,$pad),(empty($v[0]) ? '' : ' ('.$v[0].')'),trim($v[1])));
+					$short = empty($v[2]['short']) ? '    ' : '-'.$v[2]['short'].', ';
+					\cmdman\Std::println('   '.sprintf('%s--%s%s %s',$short,str_pad($k,$pad),(empty($v[0]) ? '' : ' ('.$v[0].')'),trim($v[1])));
 				}
 			}
 			$doc = self::get_document($file);

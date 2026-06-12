@@ -17,7 +17,13 @@ class Args{
 		}
 		for($i=0;$i<count($argv);$i++){
 			if(str_starts_with($argv[$i],'--')){
-				$opt[substr($argv[$i],2)][] = ((isset($argv[$i+1]) && $argv[$i+1][0] !== '-') ? $argv[++$i] : true);
+				$key = substr($argv[$i],2);
+
+				if(($eq = strpos($key,'=')) !== false){
+					$opt[substr($key,0,$eq)][] = substr($key,$eq+1);
+				}else{
+					$opt[$key][] = ((isset($argv[$i+1]) && $argv[$i+1][0] !== '-') ? $argv[++$i] : true);
+				}
 			}else if(str_starts_with($argv[$i],'-')){
 				$n = substr($argv[$i],1);
 

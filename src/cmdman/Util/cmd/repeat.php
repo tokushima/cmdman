@@ -1,8 +1,8 @@
 <?php
 /**
  * Run a command repeatedly at a fixed interval
- * @param int $interval Wait interval between executions (sec) @['init'=>60]
- * @param string $pid PID file path for daemonized execution
+ * @param int $interval Wait interval between executions (sec) @['short'=>'i','init'=>60]
+ * @param string $pid PID file path for daemonized execution @['short'=>'p']
  */
 $target = \cmdman\Args::value();
 if(empty($target)){
