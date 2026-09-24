@@ -3,8 +3,8 @@ namespace test;
 
 class Helper{
 	static public function cmd($sub){
-		$php = isset($_ENV['_']) ? $_ENV['_'] : (isset($_SERVER['_']) ? $_SERVER['_'] : 'php');
-		exec($php.' '.getcwd().'/cmdman.phar '.$sub,$rtn);
+		// $_SERVER['_'] は testman 実行時に testman 自身を指すため、実行中の php を直接使う
+		exec(escapeshellarg(PHP_BINARY).' '.escapeshellarg(getcwd().'/cmdman.phar').' '.$sub,$rtn);
 		return implode(PHP_EOL,$rtn);
 	}
 	static public function result_path($path){

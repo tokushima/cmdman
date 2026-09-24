@@ -41,6 +41,18 @@ if(\cmdman\Args::opt('install') !== false){
 	exit(0);
 }
 
+// --stub: IDE 補完用の型定義を stdout へ出力して終了
+if(\cmdman\Args::opt('stub') !== false){
+	$stubs_path = \Phar::running() ? \Phar::running().'/src/stubs.php' : __DIR__.'/src/stubs.php';
+
+	if(!is_file($stubs_path)){
+		fwrite(STDERR, 'stubs.php not found: '.$stubs_path.PHP_EOL);
+		exit(1);
+	}
+	echo file_get_contents($stubs_path);
+	exit(0);
+}
+
 \cmdman\Command::init();
 
 $version = is_file(__DIR__.'/version') ? file_get_contents(__DIR__.'/version') : '';
@@ -70,6 +82,11 @@ if(\cmdman\Args::cmd() === '') {
 
 	$list = \cmdman\Command::get_list();
 	$show($list);
+
+	\cmdman\Std::println_primary('Options:');
+	\cmdman\Std::println('  --stub            Dump IDE stubs to stdout');
+	\cmdman\Std::println('  --install [path]  Install to /usr/local/bin/cmdman (or specified path)');
+	\cmdman\Std::println();
 	exit;
 }else{
 	if(!str_contains(\cmdman\Args::cmd(), '::') && !is_file(\cmdman\Args::cmd())){
