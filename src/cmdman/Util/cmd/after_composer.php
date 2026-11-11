@@ -5,7 +5,7 @@
  * @param bool $json Check composer.json @['init'=>true]
  * @param bool $git Exclude .git
  */
-$exclude_pattern = ['tests','test','examples','example'];
+$exclude_pattern = ['tests','test','examples','example','docs','app-src'];
 $exclude_json_pattern = [];
 $copy_json_pattern = [];
 $dummy_json_pattern = [];
@@ -67,7 +67,7 @@ foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir,\Fil
 		$p = str_replace($dir,'',$path);
 
 		foreach($exclude_pattern as $e){
-			if(preg_match('/\/'.preg_quote($e,'/').'$/i',$p)){
+			if(preg_match('/^\/[^\/]+\/[^\/]+\/'.preg_quote($e,'/').'$/i',$p)){
 				$exclude_target[$p] = $path;
 			}
 		}
